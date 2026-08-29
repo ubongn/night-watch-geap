@@ -30,6 +30,7 @@ from .grafana import GrafanaClient
 from .graph import build_workflow
 from .memory import MemoryBank
 from .sim_client import SimClient
+from . import telemetry
 
 APP_NAME = "night-watch"
 RESUMABLE_STATUSES = ("killed", "failed")
@@ -40,7 +41,14 @@ def _build_deps(run_id: str) -> RunDeps:
     state_dir = SETTINGS.run_state_dir
     state_dir.mkdir(parents=True, exist_ok=True)
     ledger = ActionLedger(state_dir / f"ledger-{run_id}.jsonl")
-    grafana = GrafanaClient()
+    # Grafana Cloud when credentials are configured; otherwise the simulator
+    # data plane behind the same interface (local dev, CI, self-contained demo).
+    if SETTINGS.prom_query_url:
+        grafana = GrafanaClient()
+    else:
+        from .grafana import SnapshotGrafana
+
+        grafana = SnapshotGrafana()
     return RunDeps(
         grafana=grafana,
         audit=AuditChain(SETTINGS.audit_dir / "chain.jsonl"),
@@ -100,6 +108,9 @@ class RunManager:
                 ),
             ):
                 info["events"].append({"author": event.author, "id": event.id, "ts": time.time()})
+                with telemetry.tracer().start_as_current_span(f"nw.node.{event.author}") as span:
+                    span.set_attribute("nw.run_id", run_id)
+                    span.set_attribute("nw.node", str(event.author))
                 await self._checkpoint(run_id)
             info["status"] = "completed"
             self._write_run_state(run_id, status="completed")

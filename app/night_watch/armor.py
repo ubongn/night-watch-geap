@@ -54,19 +54,29 @@ def _scan_text(text: str) -> list[str]:
 
 
 def screen_webhook(payload: dict) -> ScreenResult:
-    """Local heuristic screen of an inbound webhook payload."""
+    """Local heuristic screen of an inbound webhook payload.
+
+    Scans every string field at the top level AND inside each alert object —
+    real webhook payloads carry annotations/labels per alert, so the screen
+    must cover both depths.
+    """
     reasons: list[str] = []
-    for key in ("annotations", "message", "text", "labels", "description", "title"):
-        val = payload.get(key)
-        if isinstance(val, str):
-            reasons.extend(_scan_text(val))
-        elif isinstance(val, dict):
-            for v in val.values():
-                if isinstance(v, str):
-                    reasons.extend(_scan_text(v))
+    targets: list[dict] = [payload]
+    alerts = payload.get("alerts")
+    if isinstance(alerts, list):
+        targets.extend(a for a in alerts if isinstance(a, dict))
+    for target in targets:
+        for key in ("annotations", "message", "text", "labels", "description", "title", "valueString", "value_string"):
+            val = target.get(key)
+            if isinstance(val, str):
+                reasons.extend(_scan_text(val))
+            elif isinstance(val, dict):
+                for v in val.values():
+                    if isinstance(v, str):
+                        reasons.extend(_scan_text(v))
     if reasons:
         return ScreenResult(verdict="block", reasons=reasons)
-    return ScreenResult(verdict="allow")
+    return ScreenResult(verdict="allow", reasons=[])
 
 
 async def screen_with_model_armor(payload: dict, template: str, project: str, location: str) -> ScreenResult:

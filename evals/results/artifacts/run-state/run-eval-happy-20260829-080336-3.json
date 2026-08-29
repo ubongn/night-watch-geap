@@ -1,0 +1,327 @@
+{
+ "run_id": "eval-happy-20260829-080336-3",
+ "status": "completed",
+ "state": {
+  "run_id": "eval-happy-20260829-080336-3",
+  "alert_webhook": {
+   "alerts": [
+    {
+     "name": "ConveyorJamCritical",
+     "service": "sorter-conveyor",
+     "severity": "critical",
+     "value": 260.0,
+     "threshold": 60.0,
+     "labels": {
+      "dock": "dock-3"
+     },
+     "fingerprint": "fp-jam-1"
+    }
+   ]
+  },
+  "approval_policy": "auto_approve",
+  "verify_cooldown_s": 2.0,
+  "alerts": [
+   {
+    "name": "ConveyorJamCritical",
+    "service": "sorter-conveyor",
+    "severity": "critical",
+    "value": 260.0,
+    "threshold": 60.0,
+    "labels": {
+     "dock": "dock-3"
+    },
+    "fingerprint": "fp-jam-1",
+    "fired_at": "2026-08-29T06:03:41.265643+00:00"
+   }
+  ],
+  "detected_at": "2026-08-29T06:03:41.265643+00:00",
+  "run_started_monotonic": 1787983421.265643,
+  "evidence": {
+   "alerts": [
+    {
+     "name": "ConveyorJamCritical",
+     "service": "sorter-conveyor",
+     "severity": "critical",
+     "value": 260.0,
+     "threshold": 60.0,
+     "labels": {
+      "dock": "dock-3"
+     },
+     "fingerprint": "fp-jam-1",
+     "fired_at": "2026-08-29T06:03:41.265643+00:00"
+    }
+   ],
+   "metrics": [
+    {
+     "query": "meridian_conveyor_jam_seconds",
+     "labels": {
+      "service": "sorter-conveyor",
+      "dock": "dock-3"
+     },
+     "values": [
+      40.0,
+      40.024,
+      40.045,
+      40.06
+     ],
+     "unit": "s"
+    },
+    {
+     "query": "meridian_sorter_throughput",
+     "labels": {
+      "service": "sorter-conveyor"
+     },
+     "values": [
+      880.0,
+      536.0,
+      235.0,
+      20.0
+     ],
+     "unit": "items/min"
+    }
+   ],
+   "logs": [
+    {
+     "query": "{service=\"sorter-conveyor\"}",
+     "lines": [
+      "ERROR motor_overtemp dock-3",
+      "ERROR jam_detected dock-3"
+     ],
+     "service": "sorter-conveyor"
+    }
+   ],
+   "memory_hits": [],
+   "gathered_at": "2026-08-29T06:03:41.320493+00:00"
+  },
+  "proposal_clock_start": "2026-08-29T06:03:41.320493+00:00",
+  "diagnosis_raw": "{\"root_cause_class\": \"conveyor_jam\", \"summary\": \"jam at dock-3\", \"confidence\": 0.9, \"blast_radius\": \"dock-3\", \"evidence_refs\": [], \"recommended_action\": \"clear_jam\"}",
+  "diagnosis": {
+   "root_cause_class": "conveyor_jam",
+   "summary": "jam at dock-3",
+   "confidence": 0.9,
+   "blast_radius": "dock-3",
+   "evidence_refs": [],
+   "recommended_action": "clear_jam"
+  },
+  "proposal_raw": "{\"action\": \"clear_jam\", \"target\": \"dock-3\", \"params\": {\"dock\": \"dock-3\"}, \"rationale\": \"clear the jam\", \"risk\": \"low\"}",
+  "proposal": {
+   "action": "clear_jam",
+   "target": "dock-3",
+   "params": {
+    "dock": "dock-3"
+   },
+   "rationale": "clear the jam",
+   "risk": "low"
+  },
+  "gate": {
+   "decision": "execute",
+   "reasons": [],
+   "checked_at": "2026-08-29T06:03:41.398590+00:00"
+  },
+  "execution": {
+   "action_id": "50a07bc7ca230545",
+   "action": "clear_jam",
+   "target": "dock-3",
+   "status": "executed",
+   "detail": "clear_jam applied to {\"dock\":\"dock-3\"} \u2014 1 fault(s) cleared",
+   "executed_at": "2026-08-29T06:03:41.443787+00:00"
+  },
+  "post_evidence": {
+   "metrics": [
+    {
+     "query": "meridian_conveyor_jam_seconds",
+     "labels": {
+      "service": "sorter-conveyor"
+     },
+     "values": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "unit": "s"
+    },
+    {
+     "query": "meridian_sorter_throughput",
+     "labels": {
+      "service": "sorter-conveyor"
+     },
+     "values": [
+      891.754,
+      916.757,
+      906.658,
+      920.558
+     ],
+     "unit": "items/min"
+    }
+   ],
+   "logs": [
+    {
+     "query": "{service=\"sorter-conveyor\"}",
+     "lines": [
+      "ok: sorter cycle complete",
+      "ok: dock handshake clean"
+     ],
+     "service": "sorter-conveyor"
+    }
+   ],
+   "prior_diagnosis": {
+    "root_cause_class": "conveyor_jam",
+    "summary": "jam at dock-3",
+    "confidence": 0.9,
+    "blast_radius": "dock-3",
+    "evidence_refs": [],
+    "recommended_action": "clear_jam"
+   },
+   "action_taken": {
+    "action_id": "50a07bc7ca230545",
+    "action": "clear_jam",
+    "target": "dock-3",
+    "status": "executed",
+    "detail": "clear_jam applied to {\"dock\":\"dock-3\"} \u2014 1 fault(s) cleared",
+    "executed_at": "2026-08-29T06:03:41.443787+00:00"
+   }
+  },
+  "verification_raw": "{\"verdict\": \"verified\", \"summary\": \"jam cleared; throughput recovered\", \"evidence_refs\": [], \"confidence\": 0.9}",
+  "verification": {
+   "verdict": "verified",
+   "summary": "jam cleared; throughput recovered",
+   "evidence_refs": [],
+   "confidence": 0.9
+  },
+  "incident_record": {
+   "run_id": "eval-happy-20260829-080336-3",
+   "started_at": "2026-08-29T06:03:41.265643+00:00",
+   "ended_at": "2026-08-29T06:03:43.558007+00:00",
+   "alerts": [
+    {
+     "name": "ConveyorJamCritical",
+     "service": "sorter-conveyor",
+     "severity": "critical",
+     "value": 260.0,
+     "threshold": 60.0,
+     "labels": {
+      "dock": "dock-3"
+     },
+     "fingerprint": "fp-jam-1",
+     "fired_at": "2026-08-29T06:03:41.265643+00:00"
+    }
+   ],
+   "diagnosis": {
+    "root_cause_class": "conveyor_jam",
+    "summary": "jam at dock-3",
+    "confidence": 0.9,
+    "blast_radius": "dock-3",
+    "evidence_refs": [],
+    "recommended_action": "clear_jam"
+   },
+   "proposal": {
+    "action": "clear_jam",
+    "target": "dock-3",
+    "params": {
+     "dock": "dock-3"
+    },
+    "rationale": "clear the jam",
+    "risk": "low"
+   },
+   "gate": {
+    "decision": "execute",
+    "reasons": [],
+    "checked_at": "2026-08-29T06:03:41.398590+00:00"
+   },
+   "execution": {
+    "action_id": "50a07bc7ca230545",
+    "action": "clear_jam",
+    "target": "dock-3",
+    "status": "executed",
+    "detail": "clear_jam applied to {\"dock\":\"dock-3\"} \u2014 1 fault(s) cleared",
+    "executed_at": "2026-08-29T06:03:41.443787+00:00"
+   },
+   "verification": {
+    "verdict": "verified",
+    "summary": "jam cleared; throughput recovered",
+    "evidence_refs": [],
+    "confidence": 0.9
+   },
+   "outcome": "remediated",
+   "duration_s": 2.29
+  }
+ },
+ "events": [
+  {
+   "author": "night_watch",
+   "id": "cd3a23a6-74e3-410d-b1ae-53e830eddc4d",
+   "ts": 1787983421.2656438
+  },
+  {
+   "author": "night_watch",
+   "id": "bf8f19f4-fec7-413b-a37f-470e636601ca",
+   "ts": 1787983421.2760696
+  },
+  {
+   "author": "night_watch",
+   "id": "7a58fdae-83b3-4e35-a9b4-eccad770ce54",
+   "ts": 1787983421.3204932
+  },
+  {
+   "author": "diagnostician",
+   "id": "73f36095-a0ef-4d46-b24b-f81f2620eef9",
+   "ts": 1787983421.3391113
+  },
+  {
+   "author": "night_watch",
+   "id": "68afbe0e-8e31-4374-8018-5fbcd9dbf775",
+   "ts": 1787983421.3514516
+  },
+  {
+   "author": "remediator",
+   "id": "9a86be97-84ea-4216-a903-4219dcda43bd",
+   "ts": 1787983421.373355
+  },
+  {
+   "author": "night_watch",
+   "id": "503abaac-5724-4e4f-9e95-8220d1097c95",
+   "ts": 1787983421.3859315
+  },
+  {
+   "author": "night_watch",
+   "id": "b2a54aff-f86f-41c6-9ae4-1eb07ca49792",
+   "ts": 1787983421.3985908
+  },
+  {
+   "author": "night_watch",
+   "id": "f4d2b02b-66c6-4357-a5ab-b344e4ef0d61",
+   "ts": 1787983421.410214
+  },
+  {
+   "author": "night_watch",
+   "id": "9c358307-c7c4-4c80-8e6c-adcb45310971",
+   "ts": 1787983421.4448233
+  },
+  {
+   "author": "night_watch",
+   "id": "a14d224c-4a4a-45fb-8eee-94580410f8d8",
+   "ts": 1787983423.4961398
+  },
+  {
+   "author": "verifier",
+   "id": "785a3372-7440-48be-b0ed-64dd9e2d0fdc",
+   "ts": 1787983423.5160832
+  },
+  {
+   "author": "night_watch",
+   "id": "d84c8db1-1b20-4e47-be92-dac71e06d266",
+   "ts": 1787983423.5327954
+  },
+  {
+   "author": "night_watch",
+   "id": "de3c38cf-05a6-43ff-94ec-0b7f375ae18c",
+   "ts": 1787983423.5443628
+  },
+  {
+   "author": "night_watch",
+   "id": "9a778388-4410-4fb5-8c7e-6e853fbd5645",
+   "ts": 1787983423.5590692
+  }
+ ]
+}

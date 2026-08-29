@@ -1,0 +1,45 @@
+{
+ "run_id": "eval-quiet-20260829-080336",
+ "status": "completed",
+ "state": {
+  "run_id": "eval-quiet-20260829-080336",
+  "alert_webhook": {
+   "alerts": []
+  },
+  "approval_policy": "auto_approve",
+  "verify_cooldown_s": 2.0,
+  "alerts": [],
+  "detected_at": "2026-08-29T06:03:43.664082+00:00",
+  "run_started_monotonic": 1787983423.664082,
+  "incident_record": {
+   "run_id": "eval-quiet-20260829-080336",
+   "started_at": "2026-08-29T06:03:43.664082+00:00",
+   "ended_at": "2026-08-29T06:03:43.686060+00:00",
+   "alerts": [],
+   "diagnosis": null,
+   "proposal": null,
+   "gate": null,
+   "execution": null,
+   "verification": null,
+   "outcome": "no_action",
+   "duration_s": 0.02
+  }
+ },
+ "events": [
+  {
+   "author": "night_watch",
+   "id": "8620cf7a-a239-4c7c-9e01-407a9519b9e1",
+   "ts": 1787983423.6640825
+  },
+  {
+   "author": "night_watch",
+   "id": "cfef252b-e77f-46c9-827f-86c628c731e6",
+   "ts": 1787983423.6755803
+  },
+  {
+   "author": "night_watch",
+   "id": "4f6409c6-7760-4f7e-abf5-98494b0d7c54",
+   "ts": 1787983423.687095
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+{
+  "alerts": [
+    {
+      "name": "ConveyorJamCritical",
+      "service": "sorter-conveyor",
+      "severity": "critical",
+      "value": 260.0,
+      "threshold": 60.0,
+      "labels": { "dock": "dock-3" },
+      "fingerprint": "fp-jam-1"
+    }
+  ]
+}

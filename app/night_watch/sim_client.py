@@ -66,3 +66,12 @@ class SimClient:
                 return resp.status_code == 200
         except httpx.HTTPError:
             return False
+
+    async def snapshot(self, service: str) -> dict:
+        """Evidence pack for one service from the simulator data plane."""
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
+            resp = await client.get(
+                f"{self.base_url}/snapshot", params={"service": service}
+            )
+            resp.raise_for_status()
+            return resp.json()

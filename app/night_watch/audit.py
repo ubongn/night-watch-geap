@@ -10,9 +10,23 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from pathlib import Path
 
 GENESIS = "0" * 64
+
+# One lock per chain file: appends from concurrent run-scoped AuditChain
+# instances (or a restarted gateway) must serialize against the shared file.
+_LOCKS: dict[str, threading.Lock] = {}
+_LOCKS_GUARD = threading.Lock()
+
+
+def _lock_for(path: Path) -> threading.Lock:
+    key = str(path)
+    with _LOCKS_GUARD:
+        if key not in _LOCKS:
+            _LOCKS[key] = threading.Lock()
+        return _LOCKS[key]
 
 
 def _hash(payload: str, prev: str) -> str:
@@ -40,22 +54,37 @@ class AuditChain:
             self.head = rec.get("hash", self.head)
 
     def append(self, event: str, run_id: str, data: dict | None = None) -> dict:
-        payload = json.dumps(
-            {"event": event, "run_id": run_id, "data": data or {}},
-            sort_keys=True,
-            separators=(",", ":"),
-        )
-        rec = {
-            "event": event,
-            "run_id": run_id,
-            "prev": self.head,
-            "hash": _hash(payload, self.head),
-        }
-        self.records.append({**rec, "data": data or {}})
-        self.head = rec["hash"]
-        with self.path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps({**rec, "data": data or {}}, sort_keys=True) + "\n")
-        return rec
+        with _lock_for(self.path):
+            # Another instance (another run, or a restarted gateway) may have
+            # appended since we loaded; re-sync before extending the chain.
+            if self._disk_count() > len(self.records):
+                self._load()
+            payload = json.dumps(
+                {"event": event, "run_id": run_id, "data": data or {}},
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            rec = {
+                "event": event,
+                "run_id": run_id,
+                "prev": self.head,
+                "hash": _hash(payload, self.head),
+            }
+            self.records.append({**rec, "data": data or {}})
+            self.head = rec["hash"]
+            with self.path.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps({**rec, "data": data or {}}, sort_keys=True) + "\n")
+            return rec
+
+    def _disk_count(self) -> int:
+        if not self.path.exists():
+            return 0
+        n = 0
+        with self.path.open("r", encoding="utf-8") as fh:
+            for line in fh:
+                if line.strip():
+                    n += 1
+        return n
 
     def verify(self) -> tuple[bool, str]:
         """Recompute the chain; report the first break."""

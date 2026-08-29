@@ -12,6 +12,7 @@ The write-back annotation call is used by the Scribe under its own scope.
 from __future__ import annotations
 
 import asyncio
+import json
 from typing import Any
 
 import httpx
@@ -144,3 +145,54 @@ class GrafanaClient:
             if isinstance(res, list):
                 metrics.extend(res)
         return {"metrics": metrics, "logs": logs}
+
+
+class SnapshotGrafana(GrafanaClient):
+    """Grafana-shaped data plane backed by the simulator snapshot API.
+
+    Same interface as the Grafana Cloud client, so the graph nodes never
+    know the difference. Used when no hosted Prometheus/Loki credentials
+    are configured (local dev, CI, and the self-contained Cloud Run demo):
+    the simulator IS the night shift, and the agents read it exactly like
+    they would read Grafana. Annotations are journaled locally instead of
+    being written to Grafana.
+    """
+
+    def __init__(self, sim: Any | None = None):
+        from .sim_client import SimClient
+
+        self._sim = sim or SimClient()
+        self._annotations_path = SETTINGS.audit_dir / "annotations.jsonl"
+        self._annotations_path.parent.mkdir(parents=True, exist_ok=True)
+
+    async def evidence_for(self, service: str, window_minutes: int = 20) -> dict:
+        snap = await self._sim.snapshot(service)
+        metrics = [MetricSeries(**m) for m in snap.get("metrics", [])]
+        return {"metrics": metrics, "logs": LogExcerpt(**snap.get("logs", {}))}
+
+    async def firing_alerts(self) -> list[Alert]:
+        return []  # webhooks are the alert entrypoint on this path
+
+    async def annotate(self, text: str, tags: list[str]) -> dict[str, Any]:
+        rec = {"text": text, "tags": tags, "at": utcnow_like()}
+        with self._annotations_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, sort_keys=True) + "\n")
+        return {"journaled": True, "text": text}
+
+    def annotations(self) -> list[dict]:
+        if not self._annotations_path.exists():
+            return []
+        out = []
+        for line in self._annotations_path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                try:
+                    out.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+        return out
+
+
+def utcnow_like() -> str:
+    from datetime import datetime, timezone
+
+    return datetime.now(timezone.utc).isoformat()
