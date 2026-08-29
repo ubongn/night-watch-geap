@@ -1,5 +1,11 @@
 # Deploying Night Watch to Google Cloud Run
 
+> **Current status (2026-08-29):** deploy assets are ready and verified
+> (Dockerfiles for both services, `deploy-all.ps1`, staged SA auth works).
+> The deploy attempt against `agentic-cinema-506710` is **IAM-blocked** — the
+> staged SA lacks the roles below. Owner actions (3 console steps) are in
+> **[UBONG-DEPLOY-STEPS.md](UBONG-DEPLOY-STEPS.md)**.
+
 Two services, one graph:
 
 | service | source | role |
@@ -7,8 +13,8 @@ Two services, one graph:
 | `night-watch-sim` | `sim/` | Meridian Freight night-shift simulator — telemetry data plane (`/snapshot`, `/metrics`) + authenticated control plane (the action plane the Executor writes to) |
 | `night-watch` | `app/` | the five-agent fleet gateway — FastAPI (`night_watch.server:app`) |
 
-Both build from source with Cloud Run buildpacks (no Docker needed; a `Dockerfile`
-also ships for `app/` if you prefer kaniko/docker builds).
+Both build from source with Cloud Run buildpacks; `Dockerfile`s ship for both
+`app/` and `sim/` if you prefer docker/kaniko builds.
 
 ---
 
