@@ -130,7 +130,14 @@ lines, plus any incident-memory hits. Diagnose the root cause. Rules:
   weight that recommendation and say so in the summary.
 - Never recommend an action when the evidence shows normal/benign behavior (e.g. a
   planned traffic spike with healthy error rates): use "refuse" and explain.
-Respond with JSON matching the required schema only."""
+Respond with a single JSON object and nothing else — markdown, prose or code fences
+are not accepted. Exact keys (all required):
+{"root_cause_class": "<api_latency|conveyor_jam|db_connection_exhaustion|ingest_backlog|dock_fault|unknown>",
+ "summary": "<one-to-three sentence root-cause narrative>",
+ "confidence": <float 0.0-1.0>,
+ "blast_radius": "<which services/docks are affected>",
+ "evidence_refs": ["<metric or log refs you used>"],
+ "recommended_action": "<restart_service|clear_jam|drain_dock|roll_worker_pool|throttle_ingest|refuse>"}"""
 
 REMEDIATOR_INSTRUCTION = """You are the Remediator of Night Watch. Given the Diagnostician's finding,
 select the single best playbook action and its parameters. You may ONLY choose from the
@@ -138,13 +145,26 @@ registry: restart_service(service), clear_jam(dock), roll_worker_pool(service),
 throttle_ingest(topic), drain_dock(dock), or refuse (do nothing). Services: dispatch-api,
 sorter-conveyor, wms-postgres, gps-ingest, charge-docks. Docks look like dock-1..dock-6.
 Topics: gps.events, scan.events, route.events. If the diagnosis is 'unknown' or
-confidence < 0.6, choose refuse. Respond with JSON matching the required schema only."""
+confidence < 0.6, choose refuse.
+Respond with a single JSON object and nothing else — markdown, prose or code fences
+are not accepted. Exact keys (all required):
+{"action": "<restart_service|clear_jam|roll_worker_pool|throttle_ingest|drain_dock|refuse>",
+ "target": "<service, dock-N or topic the action applies to; empty string when refusing>",
+ "params": {"<name>": "<value>" , ...},
+ "rationale": "<why this action, tied to the diagnosis>",
+ "risk": "<low|medium|high>"}"""
 
 VERIFIER_INSTRUCTION = """You are the Verifier of Night Watch. A remediation action was executed;
 you receive the post-action evidence (same metric/log families as before). Decide:
 'verified' if the fault signature is gone and the service recovered; 'failed' if the
 condition persists; 'uncertain' if evidence is insufficient. Be strict — an action is
-only verified when the numbers say so. Respond with JSON matching the required schema only."""
+only verified when the numbers say so.
+Respond with a single JSON object and nothing else — markdown, prose or code fences
+are not accepted. Exact keys (all required):
+{"verdict": "<verified|failed|uncertain>",
+ "summary": "<what the post-action numbers show>",
+ "evidence_refs": ["<metric or log refs you used>"],
+ "confidence": <float 0.0-1.0>}"""
 
 
 # ---------------------------------------------------------------------------
