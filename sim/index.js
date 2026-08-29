@@ -260,7 +260,9 @@ const server = http.createServer(async (req, res) => {
   const path = url.pathname;
 
   try {
-    if (path === '/healthz') {
+    // /healthz is reserved by the Google Front End on *.run.app (intercepted,
+    // never reaches the container) — /health is the public-facing alias.
+    if (path === '/healthz' || path === '/health') {
       return json(res, 200, {
         ok: true,
         service: 'meridian-sim',

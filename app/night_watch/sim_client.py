@@ -62,8 +62,13 @@ class SimClient:
     async def health(self) -> bool:
         try:
             async with httpx.AsyncClient(timeout=3.0) as client:
-                resp = await client.get(f"{self.base_url}/healthz")
-                return resp.status_code == 200
+                # /health first: on *.run.app the Google Front End reserves
+                # /healthz and 404s it before it reaches the sim container.
+                for probe in ("/health", "/healthz"):
+                    resp = await client.get(f"{self.base_url}{probe}")
+                    if resp.status_code == 200:
+                        return True
+                return False
         except httpx.HTTPError:
             return False
 

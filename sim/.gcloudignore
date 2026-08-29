@@ -1,2 +1,4 @@
-Dockerfile
 .gcloudignore
+.git/
+node_modules/
+*.log

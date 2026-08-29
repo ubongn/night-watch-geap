@@ -175,8 +175,11 @@ async def annotations():
     return {"annotations": grafana.annotations()[-20:]}
 
 
-@app.get("/healthz")
-async def healthz():
+# NOTE: on *.run.app the Google Front End reserves /healthz for its own health
+# checks and 404s external requests to that exact path before they reach the
+# container. /health is the public-facing alias (same payload); /healthz stays
+# registered for internal/liveness use.
+async def _health_payload() -> dict:
     sim = SimClient()
     chain = AuditChain(SETTINGS.audit_dir / "chain.jsonl")
     ok, why = chain.verify()
@@ -185,11 +188,22 @@ async def healthz():
         "ok": True,
         "service": "night-watch",
         "provider": SETTINGS.ai_provider,
+        "model": SETTINGS.gemini_model,
         "sim_reachable": await sim.health(),
         "audit_chain": {"verified": ok, "detail": why},
         "gateway_scopes": sorted(identity.scopes) if identity else [],
         "approval_policy": SETTINGS.approval_policy,
     }
+
+
+@app.get("/healthz")
+async def healthz():
+    return await _health_payload()
+
+
+@app.get("/health")
+async def health():
+    return await _health_payload()
 
 
 # ---------------------------------------------------------------------------
@@ -270,7 +284,7 @@ footer{margin-top:1.5rem;color:var(--dim);font-size:.75rem}
 const esc=s=>String(s??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 async function tick(){
  try{
-  const h=await (await fetch('/healthz')).json();
+  const h=await (await fetch('/health')).json();
   document.getElementById('prov').textContent='provider: '+esc(h.provider);
   const o=await (await fetch('/api/overview')).json();
   const chain=document.getElementById('chain');
