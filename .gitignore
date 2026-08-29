@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# Env & secrets
+.env
+*.creds
+grafana-cloud-creds.txt
+service-account*.json
+gcp-sa*.json
+
+# Runtime artifacts
+.runtime/
+*.log
+audit/*.jsonl
+memory/*.jsonl
+
+# Node (sim)
+node_modules/
+sim/package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
