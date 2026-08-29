@@ -15,13 +15,18 @@ Google Cloud**, visible on screen.
 ## 0. Pre-flight (before hitting record)
 
 ```bash
-# GCP URL (after deploy\deploy-all.ps1 succeeded — see deploy/README.md):
-gcloud run services describe night-watch --region europe-west1 --format "value(status.url)"
-#   -> $APP   (e.g. https://night-watch-xxxx-uk.a.run.app)
-#   -> $SIM = same command for night-watch-sim
+# Deployed 2026-08-29 (Cloud Run, europe-west1) — these are the live URLs:
+APP=https://night-watch-678150967784.europe-west1.run.app
+SIM=https://night-watch-sim-678150967784.europe-west1.run.app
+# (recover them anytime: gcloud run services describe night-watch --region europe-west1 --format "value(status.url)")
 
 # smoke: service is alive on GCP
-curl -s $APP/healthz          # {"status":"ok",...}
+# NOTE — use /health, NOT /healthz: on *.run.app the Google Front End reserves
+# the exact path /healthz for its own probes and 404s outside callers before
+# the request reaches the container. Same payload, public-safe path.
+curl -s $APP/health
+#   -> {"ok":true,"provider":"gemini","model":"gemini-3.5-flash","sim_reachable":true,
+#       "audit_chain":{"verified":true,...},...}
 ```
 
 Open three browser tabs, logged in, ready to switch:
@@ -48,21 +53,44 @@ Terminal: one window, `night-watch-geap` checked out, ready to paste commands.
 ## 2. Exact commands (paste-ready)
 
 ```bash
-# live incident (Tab A open while it runs)
+# 0) inject the REAL fault first — live Gemini reasons over live evidence, and
+#    with a nominal sim it will (correctly!) refuse the alert as a false alarm.
+#    OPTIONAL anti-hallucination beat if time allows: fire webhook-jam WITHOUT
+#    injecting the fault -> honest refusal in ~10-15s (conf ~0.95, "false
+#    alarm"). Not part of the timed segments.
+curl -s -X POST $SIM/control/fault -H "Authorization: Bearer night-watch-demo" \
+  -H "content-type: application/json" \
+  -d '{"kind":"conveyor_jam","target":"sorter-conveyor","params":{"dock":"dock-3"}}'
+#    -> {"ok":true,"target":"sorter-conveyor","kind":"conveyor_jam"}
+#    fault ramp: jam_seconds climbs ~1/s after inject — fire the webhook
+#    15-30s later so the evidence is already elevated when Gemini reads it.
+
+# 1) live incident (Tab A open while it runs)
 curl -s -X POST $APP/alerts -H "content-type: application/json" \
   -d @evals/fixtures/webhook-jam.json        # -> {"run_id":"nw-..."}  (copy it)
-curl -s $APP/runs/nw-XXXX | python -m json.tool
+#    verified live timing (GCP, 2026-08-29): remediation run ≈60s end-to-end
+#    (fire -> status="completed"); poll while narrating:
+curl -s $APP/runs/nw-XXXX | python -m json.tool   # repeat until status="completed"
+#    expected: diagnosis root_cause_class=conveyor_jam -> clear_jam@dock-3 ->
+#    gate execute -> execution "1 fault(s) cleared" -> verification verdict=verified
 
-# audit chain
+# 2) audit chain
 curl -s "$APP/audit?limit=8" | python -m json.tool
-curl -s $APP/audit/verify                    # {"verified": true, ...}
+curl -s $APP/audit/verify                    # {"verified": true, "detail":"chain intact (N records)"}
 
-# kill & resume (do it while a jam run is mid-flight; re-fire the webhook first)
-curl -s -X POST $APP/runs/nw-XXXX/kill
+# 3) kill & resume (re-inject the fault + re-fire the webhook, kill WHILE the
+#    diagnostician/remediator turn is in flight — the ~10-20s LLM window)
+curl -s -X POST $SIM/control/fault -H "Authorization: Bearer night-watch-demo" \
+  -H "content-type: application/json" \
+  -d '{"kind":"conveyor_jam","target":"sorter-conveyor","params":{"dock":"dock-3"}}'
+curl -s -X POST $APP/alerts -H "content-type: application/json" -d @evals/fixtures/webhook-jam.json
+curl -s -X POST $APP/runs/nw-XXXX/kill       # <- fire this ~5s after the webhook
 curl -s -X POST $APP/runs/nw-XXXX/resume
 curl -s $APP/runs/nw-XXXX | python -m json.tool   # status=completed, attempts=2
 
-# prompt-injection trap (must show: blocked, no run created)
+# 4) prompt-injection trap (must show: blocked, no run created) — instant:
+#    HTTP 400, verdict:block, body carries the matched pattern list (no run,
+#    no LLM turn)
 curl -s -X POST $APP/alerts -H "content-type: application/json" \
   -d @evals/fixtures/webhook-injection-trap.json
 curl -s $APP/runs                            # no new run after the blocked one
@@ -77,7 +105,7 @@ narration matches reality.
 
 - [ ] Cloud Run service list: both services green, URLs visible (0:20–0:45)
 - [ ] Service **Logs** tab streaming during kill-and-resume (2:25–3:10)
-- [ ] `/healthz` 200 from the `*.run.app` domain (pre-flight, optionally re-shown at close)
+- [ ] `/health` 200 from the `*.run.app` domain (pre-flight, optionally re-shown at close)
 - [ ] Region visible somewhere (service detail page shows `europe-west1`) — "deployed in GCP", not a screenshot of localhost
 
 ## 4. Local evidence (fallback + b-roll)
