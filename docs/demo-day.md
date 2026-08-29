@@ -64,7 +64,7 @@ curl -s $APP/runs/nw-XXXX | python -m json.tool   # status=completed, attempts=2
 
 # prompt-injection trap (must show: blocked, no run created)
 curl -s -X POST $APP/alerts -H "content-type: application/json" \
-  -d @evals/fixtures/webhook-injection.json
+  -d @evals/fixtures/webhook-injection-trap.json
 curl -s $APP/runs                            # no new run after the blocked one
 ```
 
