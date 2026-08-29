@@ -47,6 +47,51 @@ from .models import (
 # ---------------------------------------------------------------------------
 
 
+def extract_json(text: str) -> dict:
+    """Parse an LLM turn into JSON, tolerating the ways real models wrap it.
+
+    Live models (unlike the scripted test provider) frequently reply with
+    markdown-fenced JSON or a short preamble before the object. Try, in
+    order: raw parse; strip ``` fences; first balanced {...} block.
+    """
+    if not text:
+        raise json.JSONDecodeError("empty LLM turn", text or "", 0)
+    stripped = text.strip()
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
+    if stripped.startswith("```"):
+        # ```json ... ``` (optionally with prose before/after the fence)
+        inner = stripped.split("```")
+        for chunk in inner:
+            candidate = chunk.strip()
+            if candidate.startswith("json"):
+                candidate = candidate[4:].strip()
+            if candidate.startswith("{"):
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    continue
+    # last resort: first balanced object in the text
+    start = stripped.find("{")
+    if start != -1:
+        depth = 0
+        for i in range(start, len(stripped)):
+            if stripped[i] == "{":
+                depth += 1
+            elif stripped[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(stripped[start : i + 1])
+                    except json.JSONDecodeError:
+                        break
+    raise json.JSONDecodeError(
+        f"no JSON object found in LLM turn ({len(stripped)} chars)", stripped[:120], 0
+    )
+
+
 class DiagnosisSchema(BaseModel):
     root_cause_class: str
     summary: str
@@ -198,7 +243,7 @@ async def capture_diagnosis(ctx: Context, node_input: str) -> None:
     audit: AuditChain = deps.audit
     run_id = ctx.state.get("run_id", "unknown")
     try:
-        parsed = json.loads(node_input)
+        parsed = extract_json(node_input)
         diagnosis = Diagnosis(**DiagnosisSchema(**parsed).model_dump())
         ctx.state["diagnosis"] = diagnosis.model_dump()
         audit.append("diagnosis", run_id, diagnosis.model_dump())
@@ -212,7 +257,10 @@ async def capture_diagnosis(ctx: Context, node_input: str) -> None:
         ctx.state["diagnosis"] = Diagnosis(
             root_cause_class="unknown", summary=f"unparseable diagnosis: {exc}", confidence=0.0
         ).model_dump()
-        audit.append("diagnosis_parse_failed", run_id, {"error": str(exc)[:400]})
+        audit.append(
+            "diagnosis_parse_failed", run_id,
+            {"error": str(exc)[:400], "raw_turn": str(node_input)[:400]},
+        )
         return _llm_user_content(
             REMEDIATOR_INSTRUCTION,
             {"diagnosis": ctx.state["diagnosis"], "note": "upstream parse failed; refuse"},
@@ -226,13 +274,16 @@ async def capture_proposal(ctx: Context, node_input: str) -> None:
     audit: AuditChain = deps.audit
     run_id = ctx.state.get("run_id", "unknown")
     try:
-        parsed = json.loads(node_input)
+        parsed = extract_json(node_input)
         proposal = PlaybookAction(**ProposalSchema(**parsed).model_dump())
         ctx.state["proposal"] = proposal.model_dump()
         audit.append("proposal", run_id, proposal.model_dump())
     except (json.JSONDecodeError, ValidationError, TypeError) as exc:
         ctx.state["proposal"] = PlaybookAction(action="refuse", rationale=f"unparseable proposal: {exc}").model_dump()
-        audit.append("proposal_parse_failed", run_id, {"error": str(exc)[:400]})
+        audit.append(
+            "proposal_parse_failed", run_id,
+            {"error": str(exc)[:400], "raw_turn": str(node_input)[:400]},
+        )
 
 
 @node
@@ -328,14 +379,17 @@ async def capture_verification(ctx: Context, node_input: str) -> None:
     audit: AuditChain = deps.audit
     run_id = ctx.state.get("run_id", "unknown")
     try:
-        parsed = json.loads(node_input)
+        parsed = extract_json(node_input)
         verification = Verification(**VerificationSchema(**parsed).model_dump())
         ctx.state["verification"] = verification.model_dump()
         audit.append("verification", run_id, verification.model_dump())
         ctx.route = "verified" if verification.verdict == "verified" else "escalate"
     except (json.JSONDecodeError, ValidationError, TypeError) as exc:
         ctx.state["verification"] = Verification(verdict="uncertain", summary=f"unparseable: {exc}").model_dump()
-        audit.append("verification_parse_failed", run_id, {"error": str(exc)[:400]})
+        audit.append(
+            "verification_parse_failed", run_id,
+            {"error": str(exc)[:400], "raw_turn": str(node_input)[:400]},
+        )
         ctx.route = "escalate"
 
 
