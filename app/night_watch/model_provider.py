@@ -15,13 +15,14 @@ from typing import Any
 from google.adk.models.base_llm import BaseLlm
 from google.adk.models.llm_response import LlmResponse
 from google.genai import types
+from pydantic import PrivateAttr
 
 from .compat import ensure_generate_content_response_compat
 
 ensure_generate_content_response_compat()
 
 
-class ScriptedLlm(BaseLm):
+class ScriptedLlm(BaseLlm):
     """Yields scripted LlmResponses, selected by matching the prompt.
 
     Scripts are a list of (substring, response_text) pairs; the first
@@ -29,23 +30,24 @@ class ScriptedLlm(BaseLm):
     script entry. This is what the eval harness drives.
     """
 
+    _scripts: list[tuple[str, str]] = PrivateAttr(default_factory=list)
+
     def __init__(self, scripts: list[tuple[str, str]]):
         super().__init__(model="scripted")
-        self.scripts = scripts
+        self._scripts = list(scripts)
 
     def _match(self, prompt_text: str) -> str:
-        for needle, resp in self.scripts:
+        for needle, resp in self._scripts:
             if needle.lower() in prompt_text.lower():
                 return resp
-        return self.scripts[-1][1] if self.scripts else ""
+        return self._scripts[-1][1] if self._scripts else ""
 
     async def generate_content_async(self, llm_request, stream=False):
+        # Match on the conversation contents (not the system instruction):
+        # each agent turn carries a distinctive payload key.
         prompt_parts = llm_request.contents or []
         serialized = " ".join(
             p.text or "" for c in prompt_parts for p in (c.parts or []) if p and p.text
-        )
-        serialized += " ".join(
-            pc.text or "" for pc in (llm_request.system_instruction or []) if pc
         )
         text = self._match(serialized)
         part = types.Part(text=text)
@@ -83,10 +85,12 @@ DEFAULT_VERIFY_SCRIPT = json.dumps(
     }
 )
 
+# Needles match distinctive payload keys, most-specific first (the verifier's
+# payload nests the diagnosis, so its key must outrank the remediator's):
 DEFAULT_SCRIPTS: list[tuple[str, str]] = [
-    ("root_cause_class", DEFAULT_DIAGNOSIS_SCRIPT),
+    ("prior_diagnosis", DEFAULT_VERIFY_SCRIPT),
+    ("gathered_at", DEFAULT_DIAGNOSIS_SCRIPT),
     ("recommended_action", DEFAULT_PROPOSAL_SCRIPT),
-    ("verdict", DEFAULT_VERIFY_SCRIPT),
 ]
 
 

@@ -51,7 +51,7 @@ class AuditChain:
             "prev": self.head,
             "hash": _hash(payload, self.head),
         }
-        self.records.append(rec)
+        self.records.append({**rec, "data": data or {}})
         self.head = rec["hash"]
         with self.path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps({**rec, "data": data or {}}, sort_keys=True) + "\n")

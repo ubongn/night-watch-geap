@@ -28,6 +28,7 @@ from pydantic import BaseModel, ValidationError
 
 from . import models
 from .actions import ActionExecutor, validate as validate_action
+from .deps import resolve
 from .audit import AuditChain
 from .grafana import GrafanaClient
 from .memory import MemoryBank
@@ -119,8 +120,9 @@ async def detector(ctx: Context, alert_webhook: dict) -> None:
 @node
 async def evidence(ctx: Context) -> None:
     """Gather the evidence pack: metrics, logs, incident-memory hits."""
-    grafana: GrafanaClient = ctx.state["_deps"]["grafana"]
-    memory: MemoryBank = ctx.state["_deps"]["memory"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    grafana: GrafanaClient = deps.grafana
+    memory: MemoryBank = deps.memory
     alerts = [models.Alert(**a) for a in ctx.state.get("alerts", [])]
     services = sorted({a.service for a in alerts})
 
@@ -192,7 +194,8 @@ verifier_agent = LlmAgent(
 @node
 async def capture_diagnosis(ctx: Context, node_input: str) -> None:
     """Validate + persist the Diagnostician's structured output."""
-    audit: AuditChain = ctx.state["_deps"]["audit"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    audit: AuditChain = deps.audit
     run_id = ctx.state.get("run_id", "unknown")
     try:
         parsed = json.loads(node_input)
@@ -210,13 +213,17 @@ async def capture_diagnosis(ctx: Context, node_input: str) -> None:
             root_cause_class="unknown", summary=f"unparseable diagnosis: {exc}", confidence=0.0
         ).model_dump()
         audit.append("diagnosis_parse_failed", run_id, {"error": str(exc)[:400]})
-    ctx.route = "propose"
+        return _llm_user_content(
+            REMEDIATOR_INSTRUCTION,
+            {"diagnosis": ctx.state["diagnosis"], "note": "upstream parse failed; refuse"},
+        )
 
 
 @node
 async def capture_proposal(ctx: Context, node_input: str) -> None:
     """Validate + persist the Remediator's proposed action."""
-    audit: AuditChain = ctx.state["_deps"]["audit"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    audit: AuditChain = deps.audit
     run_id = ctx.state.get("run_id", "unknown")
     try:
         parsed = json.loads(node_input)
@@ -226,7 +233,6 @@ async def capture_proposal(ctx: Context, node_input: str) -> None:
     except (json.JSONDecodeError, ValidationError, TypeError) as exc:
         ctx.state["proposal"] = PlaybookAction(action="refuse", rationale=f"unparseable proposal: {exc}").model_dump()
         audit.append("proposal_parse_failed", run_id, {"error": str(exc)[:400]})
-    ctx.route = "gate"
 
 
 @node
@@ -236,7 +242,8 @@ async def policy_gate(ctx: Context) -> None:
     This is where 'the agent proposed it' becomes 'the fleet is allowed to
     do it'. No LLM involved — by design.
     """
-    audit: AuditChain = ctx.state["_deps"]["audit"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    audit: AuditChain = deps.audit
     run_id = ctx.state.get("run_id", "unknown")
     proposal = PlaybookAction(**ctx.state.get("proposal", {}))
     diagnosis = Diagnosis(**ctx.state.get("diagnosis", Diagnosis().model_dump()))
@@ -275,20 +282,19 @@ async def policy_gate(ctx: Context) -> None:
 @node
 async def executor(ctx: Context) -> None:
     """Execute the gated action — idempotently — on the action plane."""
-    audit: AuditChain = ctx.state["_deps"]["audit"]
-    executor_: ActionExecutor = ctx.state["_deps"]["executor"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    audit: AuditChain = deps.audit
+    executor_: ActionExecutor = deps.executor
     run_id = ctx.state.get("run_id", "unknown")
     proposal = PlaybookAction(**ctx.state.get("proposal", {}))
 
     if proposal.action == "refuse":
         ctx.state["execution"] = None
-        ctx.route = "verify"
         return
 
     result = await executor_.execute(run_id, proposal)
     ctx.state["execution"] = result.model_dump()
     audit.append("execution", run_id, result.model_dump())
-    ctx.route = "verify"
 
 
 @node
@@ -296,7 +302,8 @@ async def post_action_evidence(ctx: Context) -> None:
     """Cooldown, then fetch fresh evidence for the Verifier."""
     import asyncio
 
-    grafana: GrafanaClient = ctx.state["_deps"]["grafana"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    grafana: GrafanaClient = deps.grafana
     alerts = [models.Alert(**a) for a in ctx.state.get("alerts", [])]
     await asyncio.sleep(float(ctx.state.get("verify_cooldown_s", 2)))
 
@@ -317,7 +324,8 @@ async def post_action_evidence(ctx: Context) -> None:
 
 @node
 async def capture_verification(ctx: Context, node_input: str) -> None:
-    audit: AuditChain = ctx.state["_deps"]["audit"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    audit: AuditChain = deps.audit
     run_id = ctx.state.get("run_id", "unknown")
     try:
         parsed = json.loads(node_input)
@@ -332,11 +340,28 @@ async def capture_verification(ctx: Context, node_input: str) -> None:
 
 
 @node
+async def hold_record(ctx: Context) -> None:
+    """Record a held-for-approval action, then finalize via the Scribe."""
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    deps.audit.append("action_held", ctx.state.get("run_id", "unknown"), ctx.state.get("gate", {}))
+
+
+@node
+async def escalate_record(ctx: Context) -> None:
+    """Record a failed/uncertain verification, then finalize via the Scribe."""
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    deps.audit.append(
+        "verification_escalated", ctx.state.get("run_id", "unknown"), ctx.state.get("verification", {})
+    )
+
+
+@node
 async def scribe(ctx: Context) -> dict:
     """Write the incident record: audit chain, memory, Grafana annotation."""
-    audit: AuditChain = ctx.state["_deps"]["audit"]
-    memory: MemoryBank = ctx.state["_deps"]["memory"]
-    grafana: GrafanaClient = ctx.state["_deps"]["grafana"]
+    deps = resolve(ctx.state.get("run_id", "unknown"))
+    audit: AuditChain = deps.audit
+    memory: MemoryBank = deps.memory
+    grafana: GrafanaClient = deps.grafana
     run_id = ctx.state.get("run_id", "unknown")
 
     diagnosis = ctx.state.get("diagnosis")
@@ -346,7 +371,9 @@ async def scribe(ctx: Context) -> dict:
 
     if ctx.state.get("alerts"):
         outcome = "no_action"
-        if execution and execution.get("status") == "executed":
+        if execution and execution.get("status") in ("executed", "skipped_duplicate"):
+            # skipped_duplicate: the action already ran in the killed attempt;
+            # the ledger refused to double-act. Count it as acted.
             outcome = "remediated" if verification and verification.get("verdict") == "verified" else "escalated"
         elif proposal and proposal.get("action") == "refuse":
             outcome = "refused"
@@ -406,10 +433,12 @@ def build_workflow(provider: str | None = None):
             (capture_diagnosis, remediator),
             (remediator, capture_proposal),
             (capture_proposal, policy_gate),
-            (policy_gate, {"execute": executor, "refuse": scribe, "hold_for_approval": scribe}),
+            (policy_gate, {"execute": executor, "refuse": scribe, "hold_for_approval": hold_record}),
+            (hold_record, scribe),
             (executor, post_action_evidence),
             (post_action_evidence, verifier_agent),
             (verifier_agent, capture_verification),
-            (capture_verification, {"verified": scribe, "escalate": scribe}),
+            (capture_verification, {"verified": scribe, "escalate": escalate_record}),
+            (escalate_record, scribe),
         ],
     )

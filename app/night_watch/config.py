@@ -46,6 +46,7 @@ class Settings:
 
     # Runtime
     approval_policy: str = field(default_factory=lambda: _env("APPROVAL_POLICY", "auto_approve"))
+    verify_cooldown_s: float = field(default_factory=lambda: float(_env("VERIFY_COOLDOWN_S", "2")))
     run_state_dir: Path = field(default_factory=lambda: ROOT / _env("RUN_STATE_DIR", ".runtime"))
     audit_dir: Path = field(default_factory=lambda: ROOT / _env("AUDIT_DIR", "audit"))
     memory_dir: Path = field(default_factory=lambda: ROOT / _env("MEMORY_DIR", "memory"))

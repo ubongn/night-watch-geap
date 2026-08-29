@@ -72,8 +72,12 @@ def validate(action: PlaybookAction) -> list[str]:
     if action.action == "throttle_ingest" and action.params.get("topic") not in VALID_TOPICS:
         problems.append(f"unknown topic {action.params.get('topic')!r}")
     dock = action.params.get("dock")
-    if action.action in ("clear_jam", "drain_dock") and (dock is None or not dock.startswith("dock-")):
-        problems.append(f"invalid dock {dock!r} (expected dock-N)")
+    if action.action in ("clear_jam", "drain_dock"):
+        import re
+
+        m = re.fullmatch(r"dock-(\d+)", dock or "")
+        if not m or not (1 <= int(m.group(1)) <= 6):
+            problems.append(f"invalid dock {dock!r} (expected dock-1..dock-6)")
     return problems
 
 
