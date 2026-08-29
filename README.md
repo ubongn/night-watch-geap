@@ -115,6 +115,42 @@ curl -X POST http://localhost:8080/alerts -H "content-type: application/json" -d
 curl http://localhost:8080/runs/<run_id>                          # watch it flow
 ```
 
+## Live on Google Cloud (Cloud Run, europe-west1)
+
+Deployed and verified 2026-08-29 — live **Gemini** (`gemini-3.5-flash`) reasoning, real
+fault-injecting simulator, hash-chained audit:
+
+| Service | URL |
+|---|---|
+| Night Watch gateway (5-agent fleet + dashboard) | https://night-watch-678150967784.europe-west1.run.app |
+| Meridian Freight simulator (data + control plane) | https://night-watch-sim-678150967784.europe-west1.run.app |
+
+```bash
+# posture (provider, model, sim reachability, audit chain — one call)
+curl -s https://night-watch-678150967784.europe-west1.run.app/health
+# -> {"ok":true,"provider":"gemini","model":"gemini-3.5-flash","sim_reachable":true,
+#     "audit_chain":{"verified":true,...},"gateway_scopes":["armor:screen","ingest:webhook"],...}
+
+# inject a real fault, then fire the webhook at it (see docs/demo-day.md for the full sequence)
+curl -s -X POST https://night-watch-sim-678150967784.europe-west1.run.app/control/fault \
+  -H "Authorization: Bearer night-watch-demo" -H "content-type: application/json" \
+  -d '{"kind":"conveyor_jam","target":"sorter-conveyor","params":{"dock":"dock-3"}}'
+curl -s -X POST https://night-watch-678150967784.europe-west1.run.app/alerts \
+  -H "content-type: application/json" -d @evals/fixtures/webhook-jam.json
+```
+
+Witness run `nw-20260829-121736-756357` (live Gemini): diagnosed `conveyor_jam`
+(confidence 1.0, evidence-cited) → proposed `clear_jam` on dock-3 → policy gate
+`execute` → one physical repair on the simulator → verifier confirmed recovery
+(jam seconds 40→0, throughput 20→880+/min) → `remediated` in 57 s, audit chain
+verified. The fleet also **refuses on real evidence**: fired without an injected
+fault, the same webhook yields a correct `refused` outcome ("metrics show zero jam
+seconds, throughput healthy") instead of a hallucinated repair.
+
+> Note: on `*.run.app` the Google Front End reserves the exact path `/healthz` for
+> its own health checks, so external requests to it never reach the container —
+> use `/health` (same payload). `/healthz` stays bound for internal/liveness use.
+
 Full cloud deployment (Cloud Run + service account steps) is in [`deploy/`](deploy/README.md).
 The graded eval harness is in [`evals/`](evals/README.md) — `app\.venv\Scripts\python evals\run.py --matrix full`.
 
