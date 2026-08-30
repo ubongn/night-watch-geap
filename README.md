@@ -1,4 +1,4 @@
-# Night Watch
+# <img src="assets/logo-mark.svg" width="44" align="middle" alt="Night Watch logo"> Night Watch
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-2.x-4285F4)](https://google.github.io/adk-docs/)
