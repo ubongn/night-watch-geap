@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Night Watch mark">
+  <!-- night badge -->
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#0b1220" stroke="#263154" stroke-width="1.5"/>
+  <!-- stars -->
+  <circle cx="13.5" cy="12.5" r="1.1" fill="#dfe7ff" opacity="0.55"/>
+  <circle cx="51" cy="47" r="1.2" fill="#dfe7ff" opacity="0.4"/>
+  <circle cx="49.5" cy="19.5" r="0.8" fill="#dfe7ff" opacity="0.5"/>
+  <!-- watch / radar ring -->
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#dfe7ff" stroke-opacity="0.28" stroke-width="1.5"/>
+  <g stroke="#dfe7ff" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round">
+    <line x1="32" y1="6" x2="32" y2="9.6"/>
+    <line x1="32" y1="58" x2="32" y2="54.4"/>
+    <line x1="6" y1="32" x2="9.6" y2="32"/>
+    <line x1="58" y1="32" x2="54.4" y2="32"/>
+  </g>
+  <!-- radar sweep + blip -->
+  <path d="M32 6 A26 26 0 0 1 50.4 13.6" fill="none" stroke="#f5b942" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="50.4" cy="13.6" r="2.7" fill="#f5b942"/>
+  <!-- crescent moon -->
+  <path fill="#dfe7ff" d="M26.32 21.25 A15 15 0 1 0 43.34 40.39 A13.5 13.5 0 0 1 26.32 21.25 Z"/>
+  <!-- the watchful eye -->
+  <path d="M32 27Q39.5 20.3 47 27Q39.5 33.7 32 27Z" fill="#dfe7ff"/>
+  <circle cx="39.5" cy="27" r="3.4" fill="#0b1220"/>
+  <circle cx="41.1" cy="25.5" r="1" fill="#f5b942"/>
+</svg>

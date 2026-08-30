@@ -247,12 +247,15 @@ async def dashboard():
 
 DASHBOARD_HTML = """<!doctype html>
 <html><head><meta charset="utf-8"><title>Night Watch — Meridian Freight</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%20role=%22img%22%20aria-label=%22Night%20Watch%20mark%22%3E%3Crect%20x=%220.75%22%20y=%220.75%22%20width=%2262.5%22%20height=%2262.5%22%20rx=%2214%22%20fill=%22%230b1220%22%20stroke=%22%23263154%22%20stroke-width=%221.5%22/%3E%3Ccircle%20cx=%2213.5%22%20cy=%2212.5%22%20r=%221.1%22%20fill=%22%23dfe7ff%22%20opacity=%220.55%22/%3E%3Ccircle%20cx=%2251%22%20cy=%2247%22%20r=%221.2%22%20fill=%22%23dfe7ff%22%20opacity=%220.4%22/%3E%3Ccircle%20cx=%2249.5%22%20cy=%2219.5%22%20r=%220.8%22%20fill=%22%23dfe7ff%22%20opacity=%220.5%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2232%22%20r=%2226%22%20fill=%22none%22%20stroke=%22%23dfe7ff%22%20stroke-opacity=%220.28%22%20stroke-width=%221.5%22/%3E%3Cg%20stroke=%22%23dfe7ff%22%20stroke-opacity=%220.5%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%3E%3Cline%20x1=%2232%22%20y1=%226%22%20x2=%2232%22%20y2=%229.6%22/%3E%3Cline%20x1=%2232%22%20y1=%2258%22%20x2=%2232%22%20y2=%2254.4%22/%3E%3Cline%20x1=%226%22%20y1=%2232%22%20x2=%229.6%22%20y2=%2232%22/%3E%3Cline%20x1=%2258%22%20y1=%2232%22%20x2=%2254.4%22%20y2=%2232%22/%3E%3C/g%3E%3Cpath%20d=%22M32%206%20A26%2026%200%200%201%2050.4%2013.6%22%20fill=%22none%22%20stroke=%22%23f5b942%22%20stroke-width=%222.6%22%20stroke-linecap=%22round%22/%3E%3Ccircle%20cx=%2250.4%22%20cy=%2213.6%22%20r=%222.7%22%20fill=%22%23f5b942%22/%3E%3Cpath%20fill=%22%23dfe7ff%22%20d=%22M26.32%2021.25%20A15%2015%200%201%200%2043.34%2040.39%20A13.5%2013.5%200%200%201%2026.32%2021.25%20Z%22/%3E%3Cpath%20d=%22M32%2027Q39.5%2020.3%2047%2027Q39.5%2033.7%2032%2027Z%22%20fill=%22%23dfe7ff%22/%3E%3Ccircle%20cx=%2239.5%22%20cy=%2227%22%20r=%223.4%22%20fill=%22%230b1220%22/%3E%3Ccircle%20cx=%2241.1%22%20cy=%2225.5%22%20r=%221%22%20fill=%22%23f5b942%22/%3E%3C/svg%3E">
 <style>
 :root{--bg:#0b1020;--panel:#131a30;--line:#2a3558;--ink:#dbe4ff;--dim:#8fa3d9;--acc:#ffb454;--ok:#3ddc84;--bad:#ff5c7a}
 body{font-family:ui-monospace,Consolas,monospace;background:var(--bg);color:var(--ink);margin:0;padding:1.6rem}
 h1{margin:0 0 .2rem;font-size:1.35rem;color:var(--acc)}
 h2{font-size:.95rem;color:var(--dim);margin:1.4rem 0 .5rem;text-transform:uppercase;letter-spacing:.08em}
 sub{color:var(--dim)}
+.brand{display:flex;align-items:center;gap:.7rem;margin-bottom:.3rem}
+.brand svg{flex:none;border-radius:8px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem}
 table{border-collapse:collapse;width:100%}td,th{padding:.35rem .6rem;border-bottom:1px solid var(--line);text-align:left;font-size:.85rem}
@@ -264,7 +267,7 @@ th{color:var(--dim);font-weight:400}
 .map b{color:var(--ink)}
 footer{margin-top:1.5rem;color:var(--dim);font-size:.75rem}
 </style></head><body>
-<h1>Night Watch</h1><sub>five-agent SRE fleet &mdash; Meridian Freight night shift &middot; gateway / armor / registry &middot; <span id="prov"></span></sub>
+<div class="brand"><svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 64 64" role="img" aria-label="Night Watch mark"><rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#0b1220" stroke="#263154" stroke-width="1.5"/><circle cx="13.5" cy="12.5" r="1.1" fill="#dfe7ff" opacity="0.55"/><circle cx="51" cy="47" r="1.2" fill="#dfe7ff" opacity="0.4"/><circle cx="49.5" cy="19.5" r="0.8" fill="#dfe7ff" opacity="0.5"/><circle cx="32" cy="32" r="26" fill="none" stroke="#dfe7ff" stroke-opacity="0.28" stroke-width="1.5"/><g stroke="#dfe7ff" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round"><line x1="32" y1="6" x2="32" y2="9.6"/><line x1="32" y1="58" x2="32" y2="54.4"/><line x1="6" y1="32" x2="9.6" y2="32"/><line x1="58" y1="32" x2="54.4" y2="32"/></g><path d="M32 6 A26 26 0 0 1 50.4 13.6" fill="none" stroke="#f5b942" stroke-width="2.6" stroke-linecap="round"/><circle cx="50.4" cy="13.6" r="2.7" fill="#f5b942"/><path fill="#dfe7ff" d="M26.32 21.25 A15 15 0 1 0 43.34 40.39 A13.5 13.5 0 0 1 26.32 21.25 Z"/><path d="M32 27Q39.5 20.3 47 27Q39.5 33.7 32 27Z" fill="#dfe7ff"/><circle cx="39.5" cy="27" r="3.4" fill="#0b1220"/><circle cx="41.1" cy="25.5" r="1" fill="#f5b942"/></svg><div><h1>Night Watch</h1><sub>five-agent SRE fleet &mdash; Meridian Freight night shift &middot; gateway / armor / registry &middot; <span id="prov"></span></sub></div></div>
 <div class="grid">
 <div class="panel"><h2>Fleet (one ADK 2 graph)</h2><div class="map">START &rarr; <b>Detector</b> &rarr; Evidence &rarr; <b>Diagnostician</b> (LLM)
   &rarr; <b>Remediator</b> (LLM) &rarr; <b>PolicyGate</b>
