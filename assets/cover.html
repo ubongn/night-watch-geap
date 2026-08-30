@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Night Watch — cover 1920×1080</title>
+<style>
+  :root{
+    --navy:#0b1220; --navy2:#0e1730; --panel:#131a30; --line:#2a3558;
+    --ink:#dfe7ff; --dim:#8fa3d9; --amber:#f5b942;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--navy)}
+  body{font-family:'Segoe UI',-apple-system,'SF Pro Display',system-ui,Arial,sans-serif}
+  .stage{
+    position:relative;width:1920px;height:1080px;overflow:hidden;
+    background:
+      radial-gradient(1100px 700px at 78% 18%, rgba(38,49,84,.55) 0%, rgba(38,49,84,0) 60%),
+      radial-gradient(900px 900px at 12% 88%, rgba(245,185,66,.06) 0%, rgba(245,185,66,0) 55%),
+      var(--navy);
+  }
+  /* faint ops grid */
+  .stage::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(223,231,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(223,231,255,.035) 1px, transparent 1px);
+    background-size:96px 96px;
+    mask-image:radial-gradient(1400px 900px at 45% 45%, #000 30%, transparent 78%);
+  }
+  /* giant ghost ring, bottom-right */
+  .ghost{
+    position:absolute;right:-240px;bottom:-300px;width:900px;height:900px;border-radius:50%;
+    border:2px solid rgba(223,231,255,.06);
+  }
+  .ghost::after{
+    content:"";position:absolute;inset:70px;border-radius:50%;
+    border:2px dashed rgba(245,185,66,.10);
+  }
+  .star{position:absolute;border-radius:50%;background:#dfe7ff}
+  .topbar{
+    position:absolute;top:52px;right:72px;
+    font-family:ui-monospace,Consolas,Menlo,monospace;font-size:22px;letter-spacing:.28em;
+    color:var(--dim);
+  }
+  .topbar b{color:var(--amber);font-weight:600}
+  .hero{
+    position:absolute;left:120px;top:0;height:100%;max-width:1700px;
+    display:flex;align-items:center;gap:96px;
+  }
+  .mark{flex:none;filter:drop-shadow(0 0 60px rgba(223,231,255,.12))}
+  .words .kicker{
+    font-family:ui-monospace,Consolas,Menlo,monospace;
+    font-size:26px;letter-spacing:.5em;color:var(--amber);margin-bottom:26px;
+  }
+  .words h1{
+    font-size:168px;font-weight:800;letter-spacing:-.015em;line-height:.98;
+    color:var(--ink);
+  }
+  .words h1 .w2{color:var(--amber)}
+  .rule{
+    width:220px;height:4px;border-radius:2px;margin:44px 0 40px;
+    background:linear-gradient(90deg,var(--amber),rgba(245,185,66,0));
+  }
+  .words .tag{font-size:52px;font-weight:300;color:var(--ink);opacity:.94}
+  .words .sub{
+    margin-top:30px;max-width:980px;
+    font-family:ui-monospace,Consolas,Menlo,monospace;font-size:26px;line-height:1.65;color:var(--dim);
+  }
+  .words .sub b{color:var(--ink);font-weight:600}
+  .chips{
+    position:absolute;left:120px;bottom:78px;display:flex;gap:22px;align-items:center;
+  }
+  .chip{
+    font-family:ui-monospace,Consolas,Menlo,monospace;font-size:27px;letter-spacing:.04em;
+    color:var(--ink);padding:16px 34px;border-radius:999px;
+    background:rgba(19,26,48,.85);border:1px solid var(--line);
+  }
+  .chip.hot{color:var(--amber);border-color:rgba(245,185,66,.45)}
+  .foot{
+    position:absolute;right:72px;bottom:88px;
+    font-family:ui-monospace,Consolas,Menlo,monospace;font-size:22px;color:var(--dim);letter-spacing:.06em;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="ghost"></div>
+  <span class="star" style="left:640px;top:120px;width:3px;height:3px;opacity:.5"></span>
+  <span class="star" style="left:960px;top:210px;width:2px;height:2px;opacity:.4"></span>
+  <span class="star" style="left:1240px;top:96px;width:4px;height:4px;opacity:.55"></span>
+  <span class="star" style="left:1500px;top:300px;width:3px;height:3px;opacity:.35"></span>
+  <span class="star" style="left:1720px;top:170px;width:2px;height:2px;opacity:.5"></span>
+  <span class="star" style="left:840px;top:880px;width:3px;height:3px;opacity:.3"></span>
+  <span class="star" style="left:1780px;top:760px;width:3px;height:3px;opacity:.4"></span>
+  <span class="star" style="left:200px;top:150px;width:2px;height:2px;opacity:.35"></span>
+
+  <div class="topbar">22:00&ndash;06:00 &middot; <b>MERIDIAN FREIGHT</b></div>
+
+  <div class="hero">
+    <div class="mark">
+      <svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 64 64" role="img" aria-label="Night Watch mark">
+        <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#0b1220" stroke="#263154" stroke-width="1.5"/>
+        <circle cx="13.5" cy="12.5" r="1.1" fill="#dfe7ff" opacity="0.55"/>
+        <circle cx="51" cy="47" r="1.2" fill="#dfe7ff" opacity="0.4"/>
+        <circle cx="49.5" cy="19.5" r="0.8" fill="#dfe7ff" opacity="0.5"/>
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#dfe7ff" stroke-opacity="0.28" stroke-width="1.5"/>
+        <g stroke="#dfe7ff" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round">
+          <line x1="32" y1="6" x2="32" y2="9.6"/>
+          <line x1="32" y1="58" x2="32" y2="54.4"/>
+          <line x1="6" y1="32" x2="9.6" y2="32"/>
+          <line x1="58" y1="32" x2="54.4" y2="32"/>
+        </g>
+        <path d="M32 6 A26 26 0 0 1 50.4 13.6" fill="none" stroke="#f5b942" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="50.4" cy="13.6" r="2.7" fill="#f5b942"/>
+        <path fill="#dfe7ff" d="M26.32 21.25 A15 15 0 1 0 43.34 40.39 A13.5 13.5 0 0 1 26.32 21.25 Z"/>
+        <path d="M32 27Q39.5 20.3 47 27Q39.5 33.7 32 27Z" fill="#dfe7ff"/>
+        <circle cx="39.5" cy="27" r="3.4" fill="#0b1220"/>
+        <circle cx="41.1" cy="25.5" r="1" fill="#f5b942"/>
+      </svg>
+    </div>
+    <div class="words">
+      <div class="kicker">NIGHT SHIFT OPS</div>
+      <h1>Night <span class="w2">Watch</span></h1>
+      <div class="rule"></div>
+      <p class="tag">The AI crew that works the night shift</p>
+      <p class="sub"><b>Detector &rarr; Diagnostician &rarr; Remediator &rarr; Verifier &rarr; Scribe</b> &mdash; one ADK 2 graph that detects, diagnoses, remediates and verifies while the on-call human sleeps.</p>
+    </div>
+  </div>
+
+  <div class="chips">
+    <span class="chip">Google ADK</span>
+    <span class="chip">Cloud Run</span>
+    <span class="chip">Gemini 3.5 Flash</span>
+    <span class="chip hot">hash-chained audit</span>
+  </div>
+  <div class="foot">github.com/ubongn/night-watch-geap</div>
+</div>
+</body>
+</html>

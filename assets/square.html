@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Night Watch — square 512×512</title>
+<style>
+  :root{
+    --navy:#0b1220; --panel:#131a30; --line:#2a3558;
+    --ink:#dfe7ff; --dim:#8fa3d9; --amber:#f5b942;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--navy)}
+  body{font-family:'Segoe UI',-apple-system,'SF Pro Display',system-ui,Arial,sans-serif}
+  .stage{
+    position:relative;width:512px;height:512px;overflow:hidden;
+    background:
+      radial-gradient(420px 300px at 50% 34%, rgba(38,49,84,.5) 0%, rgba(38,49,84,0) 70%),
+      radial-gradient(300px 300px at 50% 110%, rgba(245,185,66,.07) 0%, rgba(245,185,66,0) 60%),
+      var(--navy);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .stage::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(223,231,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(223,231,255,.03) 1px, transparent 1px);
+    background-size:64px 64px;
+  }
+  .star{position:absolute;border-radius:50%;background:#dfe7ff}
+  .mark{position:relative;filter:drop-shadow(0 0 26px rgba(223,231,255,.14))}
+  .name{
+    position:relative;margin-top:38px;
+    font-size:52px;font-weight:800;letter-spacing:.06em;color:var(--ink);
+  }
+  .name .w2{color:var(--amber)}
+  .rule{position:relative;width:150px;height:3px;border-radius:2px;margin:22px 0 20px;
+    background:linear-gradient(90deg,rgba(245,185,66,0),var(--amber),rgba(245,185,66,0));}
+  .tag{
+    position:relative;font-family:ui-monospace,Consolas,Menlo,monospace;
+    font-size:15px;letter-spacing:.34em;color:var(--dim);
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <span class="star" style="left:70px;top:66px;width:3px;height:3px;opacity:.5"></span>
+  <span class="star" style="left:430px;top:100px;width:2px;height:2px;opacity:.45"></span>
+  <span class="star" style="left:390px;top:52px;width:3px;height:3px;opacity:.35"></span>
+  <span class="star" style="left:52px;top:420px;width:2px;height:2px;opacity:.4"></span>
+  <span class="star" style="left:460px;top:380px;width:3px;height:3px;opacity:.3"></span>
+
+  <div class="mark">
+    <svg xmlns="http://www.w3.org/2000/svg" width="248" height="248" viewBox="0 0 64 64" role="img" aria-label="Night Watch mark">
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#0b1220" stroke="#263154" stroke-width="1.5"/>
+      <circle cx="13.5" cy="12.5" r="1.1" fill="#dfe7ff" opacity="0.55"/>
+      <circle cx="51" cy="47" r="1.2" fill="#dfe7ff" opacity="0.4"/>
+      <circle cx="49.5" cy="19.5" r="0.8" fill="#dfe7ff" opacity="0.5"/>
+      <circle cx="32" cy="32" r="26" fill="none" stroke="#dfe7ff" stroke-opacity="0.28" stroke-width="1.5"/>
+      <g stroke="#dfe7ff" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round">
+        <line x1="32" y1="6" x2="32" y2="9.6"/>
+        <line x1="32" y1="58" x2="32" y2="54.4"/>
+        <line x1="6" y1="32" x2="9.6" y2="32"/>
+        <line x1="58" y1="32" x2="54.4" y2="32"/>
+      </g>
+      <path d="M32 6 A26 26 0 0 1 50.4 13.6" fill="none" stroke="#f5b942" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="50.4" cy="13.6" r="2.7" fill="#f5b942"/>
+      <path fill="#dfe7ff" d="M26.32 21.25 A15 15 0 1 0 43.34 40.39 A13.5 13.5 0 0 1 26.32 21.25 Z"/>
+      <path d="M32 27Q39.5 20.3 47 27Q39.5 33.7 32 27Z" fill="#dfe7ff"/>
+      <circle cx="39.5" cy="27" r="3.4" fill="#0b1220"/>
+      <circle cx="41.1" cy="25.5" r="1" fill="#f5b942"/>
+    </svg>
+  </div>
+  <div class="name">NIGHT <span class="w2">WATCH</span></div>
+  <div class="rule"></div>
+  <div class="tag">THE AI CREW THAT WORKS THE NIGHT SHIFT</div>
+</div>
+</body>
+</html>
