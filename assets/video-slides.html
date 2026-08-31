@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Watch — Video Deck (4:00)</title>
+<style>
+  :root{
+    --navy:#0b1220; --navy2:#0e1730; --panel:#131a30; --panel2:#0e1526;
+    --line:#2a3558; --line2:#1d2745;
+    --ink:#dfe7ff; --dim:#8fa3d9; --faint:#5d6b8c;
+    --amber:#f5b942; --amber-dim:rgba(245,185,66,.14);
+    --red:#ff6b6b; --green:#7cf0c8;
+    --mono:ui-monospace,'Cascadia Code',Consolas,Menlo,monospace;
+    --sans:'Segoe UI',-apple-system,'SF Pro Display',system-ui,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--navy); color:var(--ink); font-family:var(--sans);
+    overflow:hidden; user-select:none;
+  }
+
+  /* ---------- fixed atmosphere (all slides) ---------- */
+  .atmo{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .atmo::before{ /* ops grid */
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(223,231,255,.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(223,231,255,.03) 1px,transparent 1px);
+    background-size:96px 96px;
+    -webkit-mask-image:radial-gradient(1500px 1000px at 50% 45%,#000 25%,transparent 80%);
+    mask-image:radial-gradient(1500px 1000px at 50% 45%,#000 25%,transparent 80%);
+  }
+  .atmo::after{ /* glows */
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(1100px 700px at 80% -10%,rgba(38,49,84,.55) 0%,rgba(38,49,84,0) 60%),
+      radial-gradient(900px 900px at 8% 108%,rgba(245,185,66,.05) 0%,rgba(245,185,66,0) 55%);
+  }
+  .ghost{
+    position:fixed;right:-22vmin;bottom:-26vmin;width:64vmin;height:64vmin;border-radius:50%;
+    border:2px solid rgba(223,231,255,.05);z-index:0;pointer-events:none;
+  }
+  .ghost::after{
+    content:"";position:absolute;inset:8%;border-radius:50%;
+    border:2px dashed rgba(245,185,66,.09);
+  }
+  .star{position:fixed;border-radius:50%;background:#dfe7ff;pointer-events:none;z-index:0;
+    animation:tw 5.5s ease-in-out infinite}
+  @keyframes tw{0%,100%{opacity:.15}50%{opacity:.6}}
+
+  /* ---------- deck ---------- */
+  .deck{position:relative;height:100vh;width:100vw;z-index:1}
+  .slide{
+    position:absolute;inset:0;display:none;
+    flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:7vh 7vw;
+  }
+  .slide.active{display:flex;animation:rise .38s cubic-bezier(.2,.7,.2,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .kicker{
+    font-family:var(--mono);font-size:clamp(11px,1.05vw,15px);letter-spacing:.42em;
+    color:var(--amber);text-transform:uppercase;margin-bottom:2.6vh;
+  }
+  .kicker .dim{color:var(--faint)}
+  h1{font-size:clamp(30px,4.6vw,66px);font-weight:800;letter-spacing:-.015em;line-height:1.06}
+  h1 .amber{color:var(--amber)}
+  .lead{color:var(--dim);font-size:clamp(15px,1.7vw,24px);line-height:1.55;max-width:58ch;margin-top:2vh}
+
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid var(--line);background:var(--panel2);
+    padding:7px 16px;border-radius:999px;
+    font-family:var(--mono);font-size:clamp(10px,1vw,14px);color:var(--dim);
+    letter-spacing:.06em;
+  }
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+  .row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:3.4vh}
+
+  /* ---------- title / closing ---------- */
+  .markbig{width:clamp(96px,13vh,150px);height:auto;filter:drop-shadow(0 0 46px rgba(223,231,255,.14));margin-bottom:3.4vh}
+  .lockup{font-size:clamp(52px,9vw,128px);font-weight:800;letter-spacing:.01em;line-height:1}
+  .lockup .w2{color:var(--amber)}
+  .locksub{font-family:var(--mono);color:var(--faint);letter-spacing:.46em;font-size:clamp(10px,1.1vw,16px);margin-top:2.2vh;text-transform:uppercase}
+  .hint{position:absolute;bottom:9vh;left:0;right:0;font-family:var(--mono);font-size:clamp(10px,.95vw,13px);
+    color:var(--faint);letter-spacing:.18em}
+  .hint b{color:var(--dim);font-weight:600}
+
+  /* ---------- problem slide ---------- */
+  .clock{font-family:var(--mono);font-weight:700;font-size:clamp(90px,17vh,210px);line-height:1;
+    color:var(--ink);letter-spacing:-.02em}
+  .clock .ampm{color:var(--amber);font-size:.42em;vertical-align:.62em;letter-spacing:.1em}
+  .svc{display:flex;flex-direction:column;align-items:flex-start;gap:6px;border:1px solid var(--line2);
+    background:linear-gradient(180deg,var(--panel),var(--panel2));border-radius:12px;padding:12px 18px}
+  .svc .n{font-family:var(--mono);font-size:clamp(10px,1vw,14px);color:var(--ink);letter-spacing:.04em}
+  .svc .r{font-family:var(--mono);font-size:clamp(9px,.8vw,12px);color:var(--faint);letter-spacing:.08em}
+  .svc.warn{border-color:rgba(245,185,66,.5);background:linear-gradient(180deg,rgba(245,185,66,.10),var(--panel2))}
+  .svc.warn .r{color:var(--amber)}
+  .asleep{margin-top:3vh;font-family:var(--mono);color:var(--faint);font-size:clamp(11px,1.05vw,15px);letter-spacing:.14em}
+  .asleep b{color:var(--dim);font-weight:600}
+
+  /* ---------- crew graph ---------- */
+  .graph{display:flex;align-items:stretch;justify-content:center;gap:0;margin-top:4vh;flex-wrap:nowrap}
+  .node{
+    width:clamp(96px,11.5vw,168px);display:flex;flex-direction:column;gap:8px;align-items:center;
+    border:1px solid var(--line);border-radius:14px;padding:16px 10px 14px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));position:relative;
+  }
+  .node.llm{border-color:rgba(245,185,66,.45);
+    background:linear-gradient(180deg,rgba(245,185,66,.09),var(--panel2))}
+  .node .glyph{font-family:var(--mono);font-size:clamp(18px,2vh,24px);line-height:1}
+  .node .nm{font-family:var(--mono);font-size:clamp(9px,.95vw,13px);letter-spacing:.12em;color:var(--ink);text-transform:uppercase}
+  .node .job{font-size:clamp(9px,.85vw,12px);color:var(--faint);line-height:1.35;min-height:2.4em}
+  .node .kind{font-family:var(--mono);font-size:clamp(7.5px,.68vw,10px);letter-spacing:.1em;
+    padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim);text-transform:uppercase}
+  .node.llm .kind{border-color:rgba(245,185,66,.55);color:var(--amber);background:var(--amber-dim)}
+  .link{display:flex;align-items:center;padding:0 clamp(2px,.5vw,8px);color:var(--faint)}
+  .link svg{width:clamp(16px,2vw,30px);height:auto}
+  .guard{margin-top:2.8vh;font-family:var(--mono);font-size:clamp(9px,.95vw,13px);color:var(--dim);
+    letter-spacing:.05em;border:1px dashed var(--line);border-radius:999px;padding:8px 20px}
+  .guard b{color:var(--ink);font-weight:600}
+  .guard .g{color:var(--amber)}
+
+  /* ---------- GCP proof ---------- */
+  .proofcard{
+    border:1px solid rgba(245,185,66,.4);border-radius:18px;
+    background:linear-gradient(180deg,rgba(245,185,66,.06),var(--panel2));
+    padding:4vh 4.5vw;display:flex;flex-direction:column;align-items:center;gap:2.4vh;
+    box-shadow:0 0 80px rgba(245,185,66,.06) inset;
+  }
+  .cr{display:flex;align-items:center;gap:14px}
+  .urlrow{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;
+    border:1px solid var(--line2);background:var(--navy2);border-radius:12px;padding:12px 20px;
+  }
+  .urlrow .who{font-family:var(--mono);font-size:clamp(9px,.9vw,13px);color:var(--faint);letter-spacing:.1em;text-transform:uppercase;text-align:left}
+  .urlrow .who b{display:block;color:var(--ink);font-weight:600;letter-spacing:.06em}
+  .urlrow .url{font-family:var(--mono);font-size:clamp(11px,1.25vw,18px);color:var(--amber);letter-spacing:.01em}
+  .region{font-family:var(--mono);color:var(--dim);font-size:clamp(10px,1vw,14px);letter-spacing:.2em}
+  .region b{color:var(--ink);font-weight:600}
+
+  /* ---------- interstitials ---------- */
+  .inter .kicker{color:var(--red);letter-spacing:.5em}
+  .livedot{display:inline-block;width:.9em;height:.9em;border-radius:50%;background:var(--red);
+    box-shadow:0 0 0 0 rgba(255,107,107,.5);animation:pulse 1.6s infinite;vertical-align:.08em;margin-right:.5em}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,107,107,.45)}70%{box-shadow:0 0 0 1.1em rgba(255,107,107,0)}100%{box-shadow:0 0 0 0 rgba(255,107,107,0)}}
+  .golive{
+    font-weight:800;letter-spacing:-.02em;line-height:1.02;
+    font-size:clamp(46px,8.2vw,150px);
+  }
+  .golive .arr{color:var(--amber)}
+  .inter .lead{font-family:var(--mono);font-size:clamp(11px,1.15vw,17px);color:var(--faint);letter-spacing:.14em;text-transform:uppercase}
+
+  /* terminal card (slide 6) */
+  .term{
+    margin-top:3.4vh;width:min(1080px,88vw);text-align:left;
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:#0a0f1d;box-shadow:0 18px 60px rgba(0,0,0,.45);
+  }
+  .termbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line2);background:var(--panel2)}
+  .termbar i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+  .termbar i:first-child{background:#ff5f57}.termbar i:nth-child(2){background:#febc2e}.termbar i:nth-child(3){background:#28c840}
+  .termbar span{margin-left:8px;font-family:var(--mono);font-size:clamp(9px,.85vw,12px);color:var(--faint);letter-spacing:.12em}
+  .term pre{
+    padding:18px 22px;font-family:var(--mono);font-size:clamp(10.5px,1.12vw,16px);line-height:1.75;
+    color:var(--ink);white-space:pre-wrap;word-break:break-word;
+  }
+  .term pre .c{color:var(--faint)}
+  .term pre .p{color:var(--amber)}
+
+  /* stage timeline (slide 7) */
+  .stages{display:flex;align-items:center;gap:0;margin-top:3.6vh;flex-wrap:wrap;justify-content:center}
+  .stage{display:flex;flex-direction:column;gap:6px;align-items:center;
+    border:1px solid var(--line);background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border-radius:12px;padding:14px 22px}
+  .stage .t{font-family:var(--mono);font-size:clamp(10px,1.05vw,15px);letter-spacing:.14em;color:var(--ink);text-transform:uppercase}
+  .stage .m{font-family:var(--mono);font-size:clamp(8.5px,.85vw,12px);color:var(--amber);letter-spacing:.06em}
+  .stage.hot{border-color:rgba(245,185,66,.5);background:linear-gradient(180deg,rgba(245,185,66,.10),var(--panel2))}
+  .sarr{padding:0 10px;color:var(--faint);font-size:clamp(14px,1.6vw,24px)}
+
+  /* proof chips (slide 8) */
+  .proofchip{
+    display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-align:left;
+    border:1px solid var(--line);border-radius:14px;padding:16px 22px;min-width:min(360px,80vw);
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+  }
+  .proofchip .what{font-family:var(--mono);font-size:clamp(10px,.95vw,14px);color:var(--dim);letter-spacing:.08em}
+  .proofchip .res{font-family:var(--mono);font-size:clamp(11px,1.25vw,18px);color:var(--green)}
+  .proofchip .res .no{color:var(--red)}
+  .proofchip .res .k{color:var(--ink)}
+
+  /* honesty (slide 9) */
+  .refuse{
+    margin-top:3.4vh;border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:14px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));padding:3vh 3.5vw;max-width:820px;
+  }
+  .refuse .who{font-family:var(--mono);font-size:clamp(9px,.9vw,13px);color:var(--faint);letter-spacing:.22em;text-transform:uppercase;margin-bottom:1.4vh}
+  .refuse .q{font-family:var(--mono);font-size:clamp(15px,2vw,30px);color:var(--ink);line-height:1.5}
+  .refuse .q .hl{color:var(--amber)}
+  .refuse .conf{margin-top:1.6vh;font-family:var(--mono);font-size:clamp(10px,1vw,14px);color:var(--dim);letter-spacing:.12em}
+  .refuse .conf b{color:var(--green);font-weight:600}
+
+  /* ---------- chrome ---------- */
+  .hud{
+    position:fixed;bottom:0;left:0;right:0;z-index:3;pointer-events:none;
+    display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 28px 18px;font-family:var(--mono);
+  }
+  .hud .idx{font-size:12px;color:var(--faint);letter-spacing:.24em}
+  .hud .idx b{color:var(--dim);font-weight:600}
+  .hud .brand{font-size:10px;color:var(--faint);letter-spacing:.3em;text-transform:uppercase}
+  .timer{
+    position:fixed;top:22px;right:28px;z-index:3;pointer-events:none;display:none;
+    font-family:var(--mono);font-size:15px;color:var(--amber);letter-spacing:.14em;
+    border:1px solid rgba(245,185,66,.35);border-radius:999px;padding:6px 14px;background:rgba(11,18,32,.7);
+  }
+  .timer.show{display:block}
+  .timer .budget{color:var(--faint)}
+  .progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--amber),#ffd98a);
+    width:0;z-index:4;transition:width .3s ease;box-shadow:0 0 12px rgba(245,185,66,.5)}
+
+  @media (max-width:820px){
+    .graph{flex-wrap:wrap;gap:10px}
+    .link{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="atmo"></div><div class="ghost"></div>
+<div class="star" style="left:8%;top:14%;width:2px;height:2px;opacity:.5"></div>
+<div class="star" style="left:16%;top:72%;width:1.5px;height:1.5px;animation-delay:1.2s"></div>
+<div class="star" style="left:26%;top:9%;width:1px;height:1px;animation-delay:2.1s"></div>
+<div class="star" style="left:44%;top:84%;width:1.5px;height:1.5px;animation-delay:.6s"></div>
+<div class="star" style="left:63%;top:12%;width:2px;height:2px;animation-delay:3s"></div>
+<div class="star" style="left:74%;top:66%;width:1px;height:1px;animation-delay:1.8s"></div>
+<div class="star" style="left:86%;top:24%;width:1.5px;height:1.5px;animation-delay:2.6s"></div>
+<div class="star" style="left:92%;top:78%;width:2px;height:2px;animation-delay:.9s"></div>
+<div class="timer" id="timer">0:00 <span class="budget">/ 4:00</span></div>
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide" data-name="title">
+    <svg class="markbig" viewBox="0 0 64 64" role="img" aria-label="Night Watch mark">
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#0b1220" stroke="#263154" stroke-width="1.5"/>
+      <circle cx="13.5" cy="12.5" r="1.1" fill="#dfe7ff" opacity="0.55"/>
+      <circle cx="51" cy="47" r="1.2" fill="#dfe7ff" opacity="0.4"/>
+      <circle cx="49.5" cy="19.5" r="0.8" fill="#dfe7ff" opacity="0.5"/>
+      <circle cx="32" cy="32" r="26" fill="none" stroke="#dfe7ff" stroke-opacity="0.28" stroke-width="1.5"/>
+      <g stroke="#dfe7ff" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round">
+        <line x1="32" y1="6" x2="32" y2="9.6"/><line x1="32" y1="58" x2="32" y2="54.4"/>
+        <line x1="6" y1="32" x2="9.6" y2="32"/><line x1="58" y1="32" x2="54.4" y2="32"/>
+      </g>
+      <path d="M32 6 A26 26 0 0 1 50.4 13.6" fill="none" stroke="#f5b942" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="50.4" cy="13.6" r="2.7" fill="#f5b942"/>
+      <path fill="#dfe7ff" d="M26.32 21.25 A15 15 0 1 0 43.34 40.39 A13.5 13.5 0 0 1 26.32 21.25 Z"/>
+      <path d="M32 27Q39.5 20.3 47 27Q39.5 33.7 32 27Z" fill="#dfe7ff"/>
+      <circle cx="39.5" cy="27" r="3.4" fill="#0b1220"/>
+      <circle cx="41.1" cy="25.5" r="1" fill="#f5b942"/>
+    </svg>
+    <div class="lockup">NIGHT <span class="w2">WATCH</span></div>
+    <div class="locksub">The AI crew that works the night shift</div>
+    <div class="row">
+      <span class="chip"><span class="dot"></span>All Things Agentic Hackathon · Google</span>
+    </div>
+    <div class="hint"><b>F11</b> or <b>F</b> fullscreen&nbsp;&nbsp;·&nbsp;&nbsp;<b>← / →</b> drive&nbsp;&nbsp;·&nbsp;&nbsp;<b>T</b> timer&nbsp;&nbsp;·&nbsp;&nbsp;<b>R</b> reset timer</div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-name="problem">
+    <div class="kicker">Meridian Freight <span class="dim">· night shift</span></div>
+    <div class="clock">02:00<span class="ampm">AM</span></div>
+    <h1 style="margin-top:3vh">One on-call engineer. Five services.<br><span class="amber">Zero humans awake.</span></h1>
+    <div class="row">
+      <div class="svc"><span class="n">dispatch-api</span><span class="r">parcels must flow</span></div>
+      <div class="svc warn"><span class="n">sorter-conveyor</span><span class="r">dock-3</span></div>
+      <div class="svc"><span class="n">warehouse-db</span><span class="r">live</span></div>
+      <div class="svc"><span class="n">gps-ingest</span><span class="r">live</span></div>
+      <div class="svc"><span class="n">ev-charge-docks</span><span class="r">live</span></div>
+    </div>
+    <div class="asleep">on-call: <b>Adaeze</b> — asleep, pager armed</div>
+  </section>
+
+  <!-- 3 · THE CREW -->
+  <section class="slide" data-name="crew">
+    <div class="kicker">The crew <span class="dim">· one Google ADK graph</span></div>
+    <h1>Five agents. <span class="amber">Three reasoning jobs.</span></h1>
+    <div class="graph">
+      <div class="node">
+        <span class="glyph"><svg width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 12L16.8 7.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/></svg></span>
+        <span class="nm">Router</span>
+        <span class="job">normalize + route alerts</span>
+        <span class="kind">deterministic</span>
+      </div>
+      <div class="link"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h16m0 0-6-6m6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node llm">
+        <span class="glyph"><svg width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.2" stroke="currentColor" stroke-width="1.7"/><path d="M15.2 15.2 20.5 20.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8 10.5a2.5 2.5 0 0 1 2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+        <span class="nm">Diagnostician</span>
+        <span class="job">root cause over evidence</span>
+        <span class="kind">Gemini 3.5 Flash</span>
+      </div>
+      <div class="link"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h16m0 0-6-6m6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node llm">
+        <span class="glyph"><svg width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="nm">Remediator</span>
+        <span class="job">one playbook action</span>
+        <span class="kind">Gemini 3.5 Flash</span>
+      </div>
+      <div class="link"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h16m0 0-6-6m6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node llm">
+        <span class="glyph"><svg width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.4l2.9 2.9L16.4 8.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="nm">Verifier</span>
+        <span class="job">recovery, with numbers</span>
+        <span class="kind">Gemini 3.5 Flash</span>
+      </div>
+      <div class="link"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h16m0 0-6-6m6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node">
+        <span class="glyph"><svg width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none"><path d="M10.2 13.8a4.1 4.1 0 0 0 6.1.44l2.46-2.46a4.1 4.1 0 0 0-5.8-5.8l-1.4 1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13.8 10.2a4.1 4.1 0 0 0-6.1-.44l-2.46 2.46a4.1 4.1 0 0 0 5.8 5.8l1.4-1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nm">Reporter</span>
+        <span class="job">hash-chained audit + postmortem</span>
+        <span class="kind">deterministic</span>
+      </div>
+    </div>
+    <div class="guard">every action passes <b>policy gate</b> <span class="g">→</span> <b>idempotency ledger</b> <span class="g">→</span> <b>hash-chained audit</b></div>
+  </section>
+
+  <!-- 4 · GCP PROOF -->
+  <section class="slide" data-name="gcp">
+    <div class="kicker">GCP proof</div>
+    <div class="proofcard">
+      <div class="cr">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 18a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18.2 8.6 4.2 4.2 0 0 1 17.75 17H7Z" stroke="#f5b942" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <h1>Everything you're about to see is <span class="amber">live on Google Cloud Run</span></h1>
+      </div>
+      <div class="urlrow">
+        <span class="who"><b>night-watch</b>agent gateway</span>
+        <span class="url">night-watch-678150967784.europe-west1.run.app</span>
+      </div>
+      <div class="urlrow">
+        <span class="who"><b>night-watch-sim</b>telemetry plane</span>
+        <span class="url">night-watch-sim-678150967784.europe-west1.run.app</span>
+      </div>
+      <div class="region">region <b>europe-west1</b> · not a laptop demo</div>
+    </div>
+  </section>
+
+  <!-- 5 · INTERSTITIAL — dashboard -->
+  <section class="slide inter" data-name="live-dashboard">
+    <div class="kicker"><span class="livedot"></span>LIVE</div>
+    <div class="golive"><span class="arr">→</span> Dashboard</div>
+    <p class="lead">operator dashboard — the night shift, live</p>
+  </section>
+
+  <!-- 6 · INTERSTITIAL — inject + webhook -->
+  <section class="slide inter" data-name="live-inject">
+    <div class="kicker"><span class="livedot"></span>LIVE</div>
+    <div class="golive" style="font-size:clamp(34px,5.4vw,92px)"><span class="arr">→</span> Inject fault + fire webhook</div>
+    <div class="term">
+      <div class="termbar"><i></i><i></i><i></i><span>bash — paste-ready</span></div>
+      <pre><span class="c"># 1 — inject the fault (jam ramps ~1/s — give it 15–30 s)</span>
+<span class="p">$</span> curl -s -X POST $SIM/control/fault \
+    -H "Authorization: Bearer night-watch-demo" \
+    -H "content-type: application/json" \
+    -d '{"kind":"conveyor_jam","target":"sorter-conveyor","params":{"dock":"dock-3"}}'
+
+<span class="c"># 2 — fire the alert webhook → {"run_id":"nw-…"}</span>
+<span class="p">$</span> curl -s -X POST $APP/alerts \
+    -H "content-type: application/json" \
+    -d @evals/fixtures/webhook-jam.json</pre>
+    </div>
+  </section>
+
+  <!-- 7 · INTERSTITIAL — watch the run -->
+  <section class="slide inter" data-name="live-run">
+    <div class="kicker"><span class="livedot"></span>LIVE</div>
+    <div class="golive" style="font-size:clamp(34px,5.4vw,92px)"><span class="arr">→</span> Watch the run <span style="color:var(--dim)">(~60 s)</span></div>
+    <div class="stages">
+      <div class="stage"><span class="t">detect</span><span class="m">webhook → evidence</span></div>
+      <span class="sarr">→</span>
+      <div class="stage hot"><span class="t">diagnose</span><span class="m">conf 1.0 · conveyor_jam</span></div>
+      <span class="sarr">→</span>
+      <div class="stage"><span class="t">remediate</span><span class="m">clear_jam @ dock-3</span></div>
+      <span class="sarr">→</span>
+      <div class="stage"><span class="t">verify</span><span class="m">verdict: verified</span></div>
+    </div>
+    <p class="lead">call out each stage as it flips</p>
+  </section>
+
+  <!-- 8 · INTERSTITIAL — audit + injection trap -->
+  <section class="slide inter" data-name="live-audit">
+    <div class="kicker"><span class="livedot"></span>LIVE</div>
+    <div class="golive" style="font-size:clamp(30px,4.8vw,80px)"><span class="arr">→</span> Audit verify + injection-trap block</div>
+    <div class="row" style="gap:16px">
+      <div class="proofchip">
+        <span class="what">GET /audit/verify</span>
+        <span class="res"><span class="k">{"verified":</span> true<span class="k">}</span> — chain intact</span>
+      </div>
+      <div class="proofchip">
+        <span class="what">POST webhook-injection-trap.json</span>
+        <span class="res"><span class="no">blocked_at_armor</span> — no run, no LLM turn</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · HONESTY BEAT -->
+  <section class="slide" data-name="honesty">
+    <div class="kicker">Honesty beat <span class="dim">· the run we didn't take</span></div>
+    <h1>Agents that <span class="amber">refuse</span> to act.</h1>
+    <div class="refuse">
+      <div class="who">Diagnostician · refusal</div>
+      <div class="q">"telemetry says normal ops… <span class="hl">false alarm</span>"</div>
+      <div class="conf">confidence <b>0.95</b> → no remediation, no run — refusal audited</div>
+    </div>
+    <p class="lead">No fault → no action. Hallucinations die at the same gate.</p>
+  </section>
+
+  <!-- 10 · CLOSING -->
+  <section class="slide" data-name="close">
+    <svg class="markbig" viewBox="0 0 64 64" role="img" aria-label="Night Watch mark">
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#0b1220" stroke="#263154" stroke-width="1.5"/>
+      <circle cx="13.5" cy="12.5" r="1.1" fill="#dfe7ff" opacity="0.55"/>
+      <circle cx="51" cy="47" r="1.2" fill="#dfe7ff" opacity="0.4"/>
+      <circle cx="49.5" cy="19.5" r="0.8" fill="#dfe7ff" opacity="0.5"/>
+      <circle cx="32" cy="32" r="26" fill="none" stroke="#dfe7ff" stroke-opacity="0.28" stroke-width="1.5"/>
+      <g stroke="#dfe7ff" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round">
+        <line x1="32" y1="6" x2="32" y2="9.6"/><line x1="32" y1="58" x2="32" y2="54.4"/>
+        <line x1="6" y1="32" x2="9.6" y2="32"/><line x1="58" y1="32" x2="54.4" y2="32"/>
+      </g>
+      <path d="M32 6 A26 26 0 0 1 50.4 13.6" fill="none" stroke="#f5b942" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="50.4" cy="13.6" r="2.7" fill="#f5b942"/>
+      <path fill="#dfe7ff" d="M26.32 21.25 A15 15 0 1 0 43.34 40.39 A13.5 13.5 0 0 1 26.32 21.25 Z"/>
+      <path d="M32 27Q39.5 20.3 47 27Q39.5 33.7 32 27Z" fill="#dfe7ff"/>
+      <circle cx="39.5" cy="27" r="3.4" fill="#0b1220"/>
+      <circle cx="41.1" cy="25.5" r="1" fill="#f5b942"/>
+    </svg>
+    <div class="lockup" style="font-size:clamp(40px,6.6vw,96px)">NIGHT <span class="w2">WATCH</span></div>
+    <div class="locksub">hash-chained autonomy</div>
+    <div class="row">
+      <span class="chip">github.com/ubongn/night-watch-geap · MIT</span>
+      <span class="chip"><span class="dot"></span>night-watch-678150967784.europe-west1.run.app</span>
+    </div>
+    <div class="asleep" style="margin-top:4vh">All Things Agentic Hackathon · Google · 2026</div>
+  </section>
+
+</div><!-- /deck -->
+
+<div class="hud">
+  <span class="idx"><b id="cur">01</b> / <span id="tot">10</span></span>
+  <span class="brand">Night Watch — video deck</span>
+</div>
+
+<script>
+(function(){
+  var slides = document.querySelectorAll('.slide');
+  var total = slides.length, i = 0;
+  var cur = document.getElementById('cur'), tot = document.getElementById('tot');
+  var progress = document.getElementById('progress');
+  var timerEl = document.getElementById('timer');
+  tot.textContent = String(total).padStart(2,'0');
+
+  function pad(n){ return (n<10?'0':'') + n; }
+  function show(n){
+    i = Math.max(0, Math.min(total-1, n));
+    for (var k=0;k<total;k++) slides[k].classList.toggle('active', k===i);
+    cur.textContent = pad(i+1);
+    progress.style.width = ((i+1)/total*100) + '%';
+    try{ history.replaceState(null,'','#'+(i+1)); }catch(e){}
+  }
+
+  /* timer — hidden by default; T toggles, R resets. Starts on first show. */
+  var t0 = null, tick = null;
+  function render(){
+    var s = t0 ? Math.floor((Date.now()-t0)/1000) : 0;
+    var m = Math.floor(s/60); s = s%60;
+    timerEl.innerHTML = m + ':' + pad(s) + ' <span class="budget">/ 4:00</span>';
+  }
+  function startTick(){ if(!tick){ render(); tick = setInterval(render, 500); } }
+
+  function toggleTimer(){
+    if (timerEl.classList.contains('show')){
+      timerEl.classList.remove('show'); clearInterval(tick); tick = null;
+    } else {
+      timerEl.classList.add('show');
+      if (!t0) t0 = Date.now();
+      startTick();
+    }
+  }
+
+  function go(d){ show(i+d); }
+  function fs(){
+    if (document.fullscreenElement) { document.exitFullscreen && document.exitFullscreen(); }
+    else { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+  }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': case 'Enter': e.preventDefault(); go(1); break;
+      case 'ArrowLeft': case 'PageUp': case 'Backspace': e.preventDefault(); go(-1); break;
+      case 'Home': e.preventDefault(); show(0); break;
+      case 'End': e.preventDefault(); show(total-1); break;
+      case 'f': case 'F': fs(); break;
+      case 't': case 'T': toggleTimer(); break;
+      case 'r': case 'R': t0 = Date.now(); if(timerEl.classList.contains('show')) startTick(); break;
+    }
+  });
+
+  /* click: right two-thirds = next, left edge = back (recording-friendly) */
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a')) return;
+    go(e.clientX > window.innerWidth * 0.18 ? 1 : -1);
+  });
+
+  var h = parseInt((location.hash||'').replace('#',''),10);
+  show(!isNaN(h) && h>=1 && h<=total ? h-1 : 0);
+})();
+</script>
+</body>
+</html>
