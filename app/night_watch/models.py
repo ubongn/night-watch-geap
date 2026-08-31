@@ -71,6 +71,7 @@ class EvidenceBundle(BaseModel):
     metrics: list[MetricSeries] = Field(default_factory=list)
     logs: list[LogExcerpt] = Field(default_factory=list)
     memory_hits: list[dict] = Field(default_factory=list)
+    triage: dict | None = None  # advisory first-pass read from the Gemma tier
     gathered_at: str = Field(default_factory=lambda: utcnow().isoformat())
 
 

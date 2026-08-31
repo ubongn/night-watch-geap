@@ -24,6 +24,18 @@ class Settings:
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-3.5-flash"))
     gemini_api_key: str = field(default_factory=lambda: _env("GEMINI_API_KEY"))
 
+    # Gemma triage tier (cheap first-pass classification at the gateway; the
+    # reasoning tier stays on gemini_model). Fail-open: any error/timeout just
+    # degrades to the pre-existing flow.
+    gemma_triage: str = field(default_factory=lambda: _env("GEMMA_TRIAGE", "on"))
+    gemma_triage_models: str = field(default_factory=lambda: _env(
+        "GEMMA_TRIAGE_MODELS",
+        "gemma-3-27b-it,gemma-3-12b-it,gemma-3n-e4b-it,gemma-4-26b-a4b-it",
+    ))
+    gemma_triage_timeout_s: float = field(
+        default_factory=lambda: float(_env("GEMMA_TRIAGE_TIMEOUT_S", "5"))
+    )
+
     # Google Cloud
     gcp_project: str = field(default_factory=lambda: _env("GOOGLE_CLOUD_PROJECT"))
     gcp_location: str = field(default_factory=lambda: _env("GOOGLE_CLOUD_LOCATION", "europe-west1"))

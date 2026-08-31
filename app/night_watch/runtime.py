@@ -70,9 +70,15 @@ class RunManager:
 
     # -- lifecycle ----------------------------------------------------------
 
-    async def start_run(self, alert_payload: dict, run_id: str | None = None) -> dict:
+    async def start_run(
+        self, alert_payload: dict, run_id: str | None = None, triage: Any = None
+    ) -> dict:
         run_id = run_id or f"nw-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
         deps = _build_deps(run_id)
+        if triage is not None:
+            # the gateway's Gemma triage handle — joined (fail-open) by the
+            # evidence node; see night_watch.triage
+            deps.extra["triage"] = triage
         register(run_id, deps)
 
         await self.session_service.create_session(

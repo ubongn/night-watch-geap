@@ -24,6 +24,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from . import telemetry
+from . import triage as triage_mod
 from .armor import screen_webhook, screen_with_model_armor
 from .audit import AuditChain
 from .config import SETTINGS
@@ -90,8 +91,14 @@ async def receive_alert(request: Request):
             content={"verdict": "block", "reasons": verdict.reasons[:5]},
         )
 
-    started = await _mgr().start_run(payload)
-    return {"run_id": started["run_id"], "status": started["status"], "screen": "allow"}
+    # Gemma triage tier: fired (not awaited) so the run starts with zero added
+    # latency; the evidence node joins it fail-open with a wall-clock budget.
+    handle = triage_mod.start_triage(payload)
+    started = await _mgr().start_run(payload, triage=handle)
+    out = {"run_id": started["run_id"], "status": started["status"], "screen": "allow"}
+    if handle is not None:
+        out["triage"] = "gemma (in-flight, fail-open)"
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -189,6 +196,13 @@ async def _health_payload() -> dict:
         "service": "night-watch",
         "provider": SETTINGS.ai_provider,
         "model": SETTINGS.gemini_model,
+        "triage_tier": {
+            "flag": SETTINGS.gemma_triage,
+            "active": triage_mod.enabled(),
+            "models": [m.strip() for m in SETTINGS.gemma_triage_models.split(",") if m.strip()],
+            "timeout_s": SETTINGS.gemma_triage_timeout_s,
+            "mode": "fail-open",
+        },
         "sim_reachable": await sim.health(),
         "audit_chain": {"verified": ok, "detail": why},
         "gateway_scopes": sorted(identity.scopes) if identity else [],
