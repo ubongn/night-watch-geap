@@ -86,6 +86,15 @@ evals.
 - **Google ADK 2** (`google-adk`) — graph workflow engine: routed edges, node state,
   rehydration/resume.
 - **Gemini 3.5 Flash** via Gemini API / Vertex AI — the three reasoning agents.
+- **Gemma triage at the gateway — tiered agent intelligence**: every Armor-cleared
+  alert bundle gets a fast first-pass classification from a small Gemma model on the
+  same AI Studio key (severity band, service, likely fault class, duplicate check vs
+  incident memory) — fired at webhook receipt, joined fail-open before the
+  Diagnostician, and recorded on the audit chain (`agent: triage`). Any error or
+  timeout degrades to the pre-existing flow: the cheap tier can never block or break
+  an incident. The reasoning tier stays on Gemini 3.5 Flash. (Live tier runs
+  `gemma-4-26b-a4b-it` — the gemma-3 series was retired from the Gemini API; the
+  model string is config-driven with a fallback chain.)
 - **Google Cloud Run** — deploy target for the service (`server.py`), plus
   Model Armor screening and Memory Bank patterns mapped onto the Gemini Enterprise
   Agent Platform component set.
