@@ -33,3 +33,10 @@
 {"action": "clear_jam", "duration_s": 0.17, "outcome": "refused", "recorded_at": "2026-08-29T06:03:44.274000+00:00", "run_id": "eval-hallucination-20260829-080336", "signature": "sorter-conveyor:conveyor_jam"}
 {"action": "clear_jam", "duration_s": 8.29, "outcome": "remediated", "recorded_at": "2026-08-29T06:03:53.027292+00:00", "run_id": "eval-kr-20260829-080336-1", "signature": "sorter-conveyor:conveyor_jam"}
 {"action": "clear_jam", "duration_s": 8.29, "outcome": "remediated", "recorded_at": "2026-08-29T06:04:01.782792+00:00", "run_id": "eval-kr-20260829-080336-2", "signature": "sorter-conveyor:conveyor_jam"}
+{"action": "clear_jam", "duration_s": 2.4, "outcome": "remediated", "recorded_at": "2026-08-31T12:32:49.847279+00:00", "run_id": "eval-happy-20260831-143247-1", "signature": "sorter-conveyor:conveyor_jam"}
+{"action": "clear_jam", "duration_s": 2.36, "outcome": "remediated", "recorded_at": "2026-08-31T12:32:52.440856+00:00", "run_id": "eval-happy-20260831-143247-2", "signature": "sorter-conveyor:conveyor_jam"}
+{"action": "clear_jam", "duration_s": 2.33, "outcome": "remediated", "recorded_at": "2026-08-31T12:32:54.996962+00:00", "run_id": "eval-happy-20260831-143247-3", "signature": "sorter-conveyor:conveyor_jam"}
+{"action": "refuse", "duration_s": 0.18, "outcome": "refused", "recorded_at": "2026-08-31T12:32:55.554031+00:00", "run_id": "eval-lowconf-20260831-143247", "signature": "sorter-conveyor:conveyor_jam"}
+{"action": "clear_jam", "duration_s": 0.19, "outcome": "refused", "recorded_at": "2026-08-31T12:32:55.946357+00:00", "run_id": "eval-hallucination-20260831-143247", "signature": "sorter-conveyor:conveyor_jam"}
+{"action": "clear_jam", "duration_s": 8.38, "outcome": "remediated", "recorded_at": "2026-08-31T12:33:04.893275+00:00", "run_id": "eval-kr-20260831-143247-1", "signature": "sorter-conveyor:conveyor_jam"}
+{"action": "clear_jam", "duration_s": 8.45, "outcome": "remediated", "recorded_at": "2026-08-31T12:33:13.944737+00:00", "run_id": "eval-kr-20260831-143247-2", "signature": "sorter-conveyor:conveyor_jam"}

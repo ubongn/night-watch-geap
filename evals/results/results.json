@@ -1,32 +1,32 @@
 [
  {
   "scenario": "jam_happy_1",
-  "run_id": "eval-happy-20260829-080336-1",
+  "run_id": "eval-happy-20260831-143247-1",
   "completed": true,
   "outcome": "remediated",
   "action": "executed",
   "fault_cleared": true,
-  "detect_to_proposal_s": 0.147,
+  "detect_to_proposal_s": 0.154,
   "chain": "chain.jsonl"
  },
  {
   "scenario": "jam_happy_2",
-  "run_id": "eval-happy-20260829-080336-2",
+  "run_id": "eval-happy-20260831-143247-2",
   "completed": true,
   "outcome": "remediated",
   "action": "executed",
   "fault_cleared": true,
-  "detect_to_proposal_s": 0.104,
+  "detect_to_proposal_s": 0.114,
   "chain": "chain.jsonl"
  },
  {
   "scenario": "jam_happy_3",
-  "run_id": "eval-happy-20260829-080336-3",
+  "run_id": "eval-happy-20260831-143247-3",
   "completed": true,
   "outcome": "remediated",
   "action": "executed",
   "fault_cleared": true,
-  "detect_to_proposal_s": 0.108,
+  "detect_to_proposal_s": 0.111,
   "chain": "chain.jsonl"
  },
  {
@@ -37,14 +37,14 @@
  },
  {
   "scenario": "quiet_night",
-  "run_id": "eval-quiet-20260829-080336",
+  "run_id": "eval-quiet-20260831-143247",
   "completed": true,
   "outcome": "no_action",
   "action": null
  },
  {
   "scenario": "low_confidence_refuses",
-  "run_id": "eval-lowconf-20260829-080336",
+  "run_id": "eval-lowconf-20260831-143247",
   "completed": true,
   "outcome": "refused",
   "action": null,
@@ -52,7 +52,7 @@
  },
  {
   "scenario": "hallucinated_action_dies_at_gate",
-  "run_id": "eval-hallucination-20260829-080336",
+  "run_id": "eval-hallucination-20260831-143247",
   "completed": true,
   "outcome": "refused",
   "executed": null,
@@ -60,7 +60,7 @@
  },
  {
   "scenario": "kill_and_resume_1",
-  "run_id": "eval-kr-20260829-080336-1",
+  "run_id": "eval-kr-20260831-143247-1",
   "killed_mid_incident": true,
   "outcome_before_resume": null,
   "fault_cleared_by_single_action": true,
@@ -71,7 +71,7 @@
  },
  {
   "scenario": "kill_and_resume_2",
-  "run_id": "eval-kr-20260829-080336-2",
+  "run_id": "eval-kr-20260831-143247-2",
   "killed_mid_incident": true,
   "outcome_before_resume": null,
   "fault_cleared_by_single_action": true,
